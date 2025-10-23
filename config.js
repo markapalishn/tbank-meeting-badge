@@ -41,7 +41,7 @@ const CONFIG = {
     // Информация о сотруднике
     EMPLOYEE_POSITION: 'PM',
     EMPLOYEE_NAME: 'Апалишин Марк',
-    RESPONSIBILITY_AREAS: 'Т-Банк проекты',
+    RESPONSIBILITY_AREAS: 'Платежная форма, Checkout',
     
     // Настройки новых бейджей
     BADGE_SPACING: 30,           // Отступ между бейджами

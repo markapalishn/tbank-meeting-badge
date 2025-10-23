@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #0037C0;
+    --primary-color: #E6DBCB;
     --warning-color: #FF9800;
     --overdue-color: #f44336;
 }
@@ -129,7 +129,7 @@ body {
 .meeting-title {
     font-size: 32px;
     font-weight: 500;
-    color: #ffffff;
+    color: #333333;
     margin-bottom: 8px;
     line-height: 1.2;
     white-space: nowrap;
@@ -141,7 +141,7 @@ body {
 .timer {
     font-size: 50px;
     font-weight: 500;
-    color: #ffffff;
+    color: #333333;
     font-family: 'Stolzl', monospace;
     letter-spacing: 2px;
     line-height: 1;
@@ -164,14 +164,14 @@ body {
 .next-label {
     font-size: 24px;
     font-weight: 400;
-    color: white;
+    color: #333333;
     margin-bottom: 4px;
 }
 
 .next-time {
     font-size: 50px;
     font-weight: 500;
-    color: #ffffff;
+    color: #333333;
     font-family: 'Stolzl', monospace;
     letter-spacing: 2px;
     line-height: 1;
@@ -249,7 +249,7 @@ body {
 
 /* Стили для зон ответственности */
 .responsibility-areas {
-    color: white; /* Белый цвет вместо серого */
+    color: #EFEBE5; /* Цвет для Т-Банк */
     font-family: 'Stolzl Book', sans-serif;
     font-weight: 350;
     font-size: 40px;
