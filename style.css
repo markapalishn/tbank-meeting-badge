@@ -103,6 +103,8 @@ body {
 #companyLogo {
     padding: 24px 24px; /* Отступы: сверху/снизу — 24px, слева/справа — 36px */
     justify-content: center; /* Центрируем логотип */
+    background: #E6DBCB; /* Одноцветный фон цвета Т-Банк */
+    backdrop-filter: none; /* Убираем эффекты блюра */
 }
 
 #companyLogo img {
