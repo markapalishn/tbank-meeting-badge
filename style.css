@@ -34,7 +34,7 @@
 html {
     width: 686px;
     height: 400px; /* Фиксированная высота для OBS */
-    background: transparent !important;
+    background: transparent;
     overflow: hidden;
     margin: 0;
     padding: 20px 0; /* Уменьшаем отступы для 400px */
@@ -42,7 +42,7 @@ html {
 
 body {
     font-family: 'Stolzl', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: transparent !important;
+    background: transparent;
     color: white;
     overflow: hidden;
     margin: 0;
@@ -59,7 +59,7 @@ body {
 .badge-container {
     width: 626px;
     height: auto; /* Высота по содержимому */
-    background: transparent !important;
+    background: transparent;
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Выравнивание по левому краю */
@@ -75,7 +75,7 @@ body {
     height: 145px; /* Фиксированная высота */
     background: rgba(0, 55, 192, 0.15); /* Полупрозрачный синий фон с блюром */
     backdrop-filter: blur(20px) saturate(1.2) brightness(1.1); /* Усиленный блюр с искажениями */
-    border: 3px solid var(--primary-color, #0037C0); /* Синяя внутренняя обводка */
+    border: 3px solid var(--primary-color, #E6DBCB); /* Синяя внутренняя обводка */
     border-radius: 30px;
     position: relative;
     overflow: hidden;
@@ -85,7 +85,7 @@ body {
     box-sizing: border-box;
     padding: 0 40px;
     transition: transform 0.1s ease; /* Плавная анимация для OBS обновления */
-    margin-bottom: 0; /* Убираем отступ снизу */
+    margin-bottom: 0;
 }
 
 .meeting-badge::before {
@@ -211,7 +211,7 @@ body {
     justify-content: center; /* Выравниваем по центру */
     background: #0037C0;
     border-radius: 30px;
-    margin-bottom: 0; /* Убираем отступ снизу */
+    margin-bottom: 0;
     padding: 0 10px; /* Ровно 10px с каждой стороны */
 }
 
@@ -233,8 +233,8 @@ body {
 
 /* Общие стили для всех бейджей */
 .badge {
-    background: var(--primary-color, #0037C0);
-    color: white;
+    background: var(--primary-color, #E6DBCB);
+    color: #333333;
     font-family: 'Stolzl', sans-serif;
     font-weight: 500;
     font-size: 40px;
@@ -266,7 +266,7 @@ body {
     height: 145px; /* Такая же высота как у бейджа встречи */
     background: rgba(0, 55, 192, 0.15); /* Тот же фон с блюром */
     backdrop-filter: blur(20px) saturate(1.2) brightness(1.1); /* Тот же блюр */
-    border: 3px solid var(--primary-color, #0037C0); /* Такая же граница */
+    border: 3px solid var(--primary-color, #E6DBCB); /* Такая же граница */
     border-radius: 30px; /* Такие же скругления */
     display: flex;
     flex-direction: column;
@@ -287,7 +287,7 @@ body {
 }
 
 .loader-text {
-    color: white;
+    color: #333333;
     font-family: 'Stolzl', sans-serif;
     font-weight: 500;
     font-size: 18px;
@@ -300,40 +300,13 @@ body {
 }
 
 
-/* Жесткая фиксация для OBS - предотвращает "пляски" */
+
 * {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased; /* Сглаживание шрифтов для Chrome/macOS */
+    -moz-osx-font-smoothing: grayscale;  /* Сглаживание шрифтов для Firefox/macOS */
+    backface-visibility: hidden;         /* Борьба с мерцанием и "плясками" */
+    -webkit-backface-visibility: hidden; /* Для старых WebKit-браузеров (Chrome, OBS) */
 }
 
-/* Дополнительная стабилизация для OBS */
-html, body {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: auto;
-}
 
-.badge-container {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: auto;
-}
-
-/* Специальные стили для OBS - применяются только в OBS */
-body.obs-mode {
-    background: transparent;
-}
-
-body.obs-mode .obs-browser-source {
-    background: transparent;
-}
-
-/* Fallback для браузеров без поддержки prefers-color-scheme */
-@supports not (color-scheme: light dark) {
-    body.obs-mode {
-        background: transparent;
-    }
-}
 
