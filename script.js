@@ -750,11 +750,11 @@ class MeetingTimer {
         
         if (meetingBadge) {
             if (progress === 0) {
-                meetingBadge.style.background = '#0037C0';
+                meetingBadge.style.background = 'var(--primary-color, #E6DBCB)';
             } else if (progress === 1) {
                 meetingBadge.style.background = 'transparent';
             } else {
-                const gradient = `linear-gradient(90deg, #0037C0 0%, #0037C0 ${fillPercentage}%, transparent ${fillPercentage}%, transparent 100%)`;
+                const gradient = `linear-gradient(90deg, var(--primary-color, #E6DBCB) 0%, var(--primary-color, #E6DBCB) ${fillPercentage}%, transparent ${fillPercentage}%, transparent 100%)`;
                 meetingBadge.style.background = gradient;
             }
         }
