@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Т-Банк Meeting Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="badge-container">
+        <div class="meeting-badge" id="meetingBadge">
+            <div class="left-section">
+                <div class="cloud-logo">
+                    <img src="assets/svg/Cloud-logo.svg" alt="Cloud" />
+                </div>
+                <div class="meeting-info">
+                    <div class="meeting-title">Конец через</div>
+                    <div class="timer" id="currentTimer">00:00</div>
+                </div>
+            </div>
+            
+            <div class="decorative-element">
+                <img src="assets/svg/Element-1.svg" alt="Decorative" />
+            </div>
+            
+            <div class="right-section">
+                <div class="next-info">
+                    <div class="next-label">следующая</div>
+                    <div class="next-time" id="nextCountdown">--:--</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Лоадер при обновлении календаря -->
+        <div class="loader" id="loader" style="display: none;">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Обновление календаря...</div>
+        </div>
+        
+        <!-- Логотип компании когда встреч нет -->
+        <div class="company-logo" id="companyLogo" style="display: none;">
+            <img src="assets/svg/All logo Cloud.svg" alt="Cloud Company Logo" />
+        </div>
+        
+        <!-- Бейдж с должностью и ФИО -->
+        <div class="employee-info" id="employeeInfo" style="display: none;">
+            <div class="badge" id="positionBadge">PM</div>
+            <div class="badge" id="nameBadge">Апалишин Марк</div>
+        </div>
+        
+        <!-- Зоны ответственности -->
+        <div class="responsibility-areas" id="responsibilityAreas" style="display: none;">
+            Т-Банк проекты
+        </div>
+    </div>
+    
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
