@@ -21,12 +21,11 @@ class MeetingTimer {
         this.nextMeeting = null;
         this.isConnected = false;
         this.updateInterval = null;
-        
+
         this.initializeElements();
-        this.startTimer();
-        this.loadMeetings();
-        // Инициализируем информацию о сотруднике сразу
-        this.updateEmployeeInfo();
+        // В ветке main-without-calendar функционал календаря отключен.
+        // Показываем только дефолтное состояние без загрузки событий.
+        this.showDefaultState();
     }
     
     initializeElements() {
@@ -63,20 +62,41 @@ class MeetingTimer {
         this.elements.responsibilityAreas.style.display = 'block';
         logger.info('Есть встречи - показываем бейдж');
     }
-    
-    async loadMeetings() {
-        try {
-            this.showLoader();
-            const calendarUrl = this.getGoogleCalendarUrl();
-            await this.loadFromPublicCalendar(calendarUrl);
-        } catch (error) {
-            logger.error('Ошибка загрузки встреч:', error);
-            this.hideBadge();
+
+    showDefaultState() {
+        // Скрываем лоадер и бейдж встречи, показываем логотип и информацию о сотруднике
+        this.hideLoader();
+        
+        const meetingBadge = document.getElementById('meetingBadge');
+        const companyLogo = document.getElementById('companyLogo');
+
+        if (meetingBadge) {
+            meetingBadge.style.display = 'none';
         }
-    }
-    
-    getGoogleCalendarUrl() {
-        return window.CONFIG.CALENDAR_URL;
+        if (companyLogo) {
+            companyLogo.style.display = 'flex';
+        }
+
+        if (this.elements.employeeInfo) {
+            this.elements.employeeInfo.style.display = 'flex';
+        }
+        if (this.elements.responsibilityAreas) {
+            this.elements.responsibilityAreas.style.display = 'block';
+        }
+
+        if (this.elements.meetingTitle) {
+            this.elements.meetingTitle.textContent = 'Free-time';
+        }
+        if (this.elements.currentTimer) {
+            this.elements.currentTimer.textContent = 'Free-time';
+            this.elements.currentTimer.className = 'timer';
+        }
+        if (this.elements.nextCountdown) {
+            this.elements.nextCountdown.textContent = 'нет';
+        }
+
+        this.updateEmployeeInfo();
+        logger.info('Календарь отключен: отображается только дефолтное состояние');
     }
     
     async fetchWithProxy(url) {
@@ -641,15 +661,10 @@ class MeetingTimer {
     
     // Принудительное обновление календаря
     refreshCalendar() {
-        logger.info('🔄 Принудительное обновление календаря...');
-        // Показываем лоадер (он скроет бейдж встречи)
-        this.showLoader();
-        // Очищаем текущие данные
-        this.currentMeeting = null;
-        this.nextMeeting = null;
-        
-        // Загружаем календарь сразу
-        this.loadMeetings();
+        // В ветке main-without-calendar функционал календаря отключен.
+        // Просто поддерживаем дефолтное состояние без загрузки данных.
+        logger.info('refreshCalendar вызван, но календарь отключен (main-without-calendar)');
+        this.showDefaultState();
     }
     
     showLoader() {
@@ -685,22 +700,9 @@ class MeetingTimer {
     
     // Принудительное обновление для OBS
     forceOBSRefresh() {
-        // Обновляем календарь
-        this.loadMeetings();
-        
-        // Принудительно обновляем отображение
-        this.updateDisplay();
-        
-        // Добавляем небольшое изменение в DOM для принудительного обновления
-        const badge = document.getElementById('meetingBadge');
-        if (badge) {
-            badge.style.transform = 'scale(1.001)';
-            setTimeout(() => {
-                badge.style.transform = 'scale(1)';
-            }, 10);
-        }
-        
-        logger.debug('OBS принудительно обновлен');
+        // В ветке main-without-calendar просто обновляем дефолтное состояние.
+        logger.info('forceOBSRefresh вызван, но календарь отключен (main-without-calendar)');
+        this.showDefaultState();
     }
     
     updateTimers() {
