@@ -246,7 +246,13 @@
     let idx;
     do { idx = Math.floor(Math.random() * scenarios.length); } while (idx === lastIdx);
     lastIdx = idx;
-    setPos(-W, TOP_Y);
+    // Возращается в начало перед новым сценарием (плавно входит в кадр)
+    const { x, y } = getPos();
+    if (x > 0 || y !== TOP_Y) {
+      await animate({ left: -W, top: TOP_Y }, 800, 'ease');
+    } else {
+      setPos(-W, TOP_Y);
+    }
     await scenarios[idx]();
     await delay(20000);
     cycle();
