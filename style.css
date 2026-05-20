@@ -53,7 +53,7 @@ body {
     width: var(--card-width);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 30px;
 }
 
 .employee-card__top {
