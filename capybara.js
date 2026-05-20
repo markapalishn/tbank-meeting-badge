@@ -176,8 +176,9 @@
     // Бежит вправо по верху
     await walkTo(CARD_W - W, TOP_Y, 3000);
 
-    // Спускается
-    await walkTo(CARD_W - W, BOT_Y, 1600);
+    // Спускается (не совсем вниз — выше текста)
+    const eatY = BOT_Y - 50;
+    await walkTo(CARD_W - W, eatY, 1600);
 
     // Ест
     show('eat');
@@ -188,7 +189,7 @@
 
     // Бежит влево
     face('left');
-    await walkTo(0, BOT_Y, 3000);
+    await walkTo(0, eatY, 3000);
 
     // Засыпает с полным животом
     show('sleep');
