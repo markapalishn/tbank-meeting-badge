@@ -143,18 +143,18 @@
     await jump(3, 250);
     await delay(400);
 
-    // Запрыгивает на блок с именем
+    // Запрыгивает на блок с именем (позади)
     show('walk');
     face('right');
+    capy.style.zIndex = 1;
     await animate({ left: 110, top: TOP_Y - 12 }, 300, 'easeOut');
     await animate({ top: TOP_Y }, 200, 'easeIn');
 
-    // Пробегает по блоку
-    capy.style.zIndex = 1;
+    // Пробегает по блоку (остаётся позади)
     await walkTo(CARD_W - W - 10, TOP_Y, 2200);
-    capy.style.zIndex = 10;
 
-    // Спрыгивает к тексту
+    // Спрыгивает и выходит вперёд
+    capy.style.zIndex = 10;
     await animate({ top: BOT_Y - 10 }, 200, 'easeOut');
     await animate({ left: CARD_W - W, top: BOT_Y }, 200, 'easeIn');
 
