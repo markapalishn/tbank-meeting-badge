@@ -1,27 +1,21 @@
 :root {
-    --primary-color: #E6DBCB;
-    --warning-color: #FF9800;
-    --overdue-color: #f44336;
+    --name-bg: #DFD2BD;
+    --text-dark: #333333;
+    --areas-color: #EFEBE5;
+    --card-width: 345px;
 }
 
 @font-face {
-    font-family: 'Stolzl';
-    src: url('assets/fonts/stolzl_medium.otf') format('opentype');
-    font-weight: 500;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Stolzl';
-    src: url('assets/fonts/stolzl_regular.otf') format('opentype');
+    font-family: 'SF Pro';
+    src: url('assets/fonts/SF-Pro.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
 }
 
 @font-face {
-    font-family: 'Stolzl Book';
-    src: url('assets/fonts/stolzl_book.otf') format('opentype');
-    font-weight: 350;
+    font-family: 'T-Sans';
+    src: url('assets/fonts/T-Sans_Medium.otf') format('opentype');
+    font-weight: 500;
     font-style: normal;
 }
 
@@ -29,280 +23,109 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-    width: 686px;
-    height: 400px; /* Фиксированная высота для OBS */
-    background: transparent;
+html,
+body {
+    width: var(--card-width);
+    /* TODO: временно серый фон для превью; для OBS вернуть transparent */
+    background: #808080;
     overflow: hidden;
-    margin: 0;
-    padding: 20px 0; /* Уменьшаем отступы для 400px */
 }
 
 body {
-    font-family: 'Stolzl', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: transparent;
-    color: white;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-/* Контейнер для всех элементов бейджа */
-.badge-container {
-    width: 650px;
-    height: auto; /* Высота по содержимому */
-    background: transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Выравнивание по левому краю */
-    justify-content: flex-start;
-    position: relative;
-    margin: 0 auto; /* Центрируем контейнер */
-    padding: 0; /* Убираем отступы - они уже в html */
-    z-index: 1000;
-}
-
-.meeting-badge {
-    width: 650px; /* Фиксированная ширина */
-    height: 145px; /* Фиксированная высота */
-    background: rgba(230, 219, 203, 0.15); /* Полупрозрачный фон цвета Т-Банк с блюром */
-    backdrop-filter: blur(20px) saturate(1.2) brightness(1.1); /* Усиленный блюр с искажениями */
-    border: 3px solid var(--primary-color, #E6DBCB); /* Синяя внутренняя обводка */
-    border-radius: 30px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
-    padding: 0 20px; /* Уменьшенные отступы */
-    transition: transform 0.1s ease; /* Плавная анимация для OBS обновления */
-    margin-bottom: 0;
-}
-
-.meeting-badge::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
-    pointer-events: none;
-}
-
-/* Стили для логотипа компании внутри meeting-badge */
-#companyLogo {
-    padding: 24px 24px; /* Отступы: сверху/снизу — 24px, слева/справа — 36px */
-    justify-content: center; /* Центрируем логотип */
-    background: #E6DBCB; /* Одноцветный фон цвета Т-Банк */
-    backdrop-filter: none; /* Убираем эффекты блюра */
-}
-
-#companyLogo img {
-    width: 88%; /* Фиксированная ширина */
-    height: 88%; /* Фиксированная высота */
-    object-fit: contain;
-    position: relative;
-    z-index: 2;
-}
-
-.left-section {
-    display: flex;
-    align-items: center;
-    position: relative;
-    z-index: 2;
-}
-
-.cloud-logo {
-    width: 76px;
-    height: 76px;
-    margin-right: 20px;
-    flex-shrink: 0;
-}
-
-.cloud-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.meeting-info {
-    display: flex;
-    flex-direction: column;
     align-items: flex-start;
+    justify-content: flex-start;
 }
 
-.meeting-title {
-    font-size: 32px;
-    font-weight: 500;
-    color: #333333;
-    margin-bottom: 8px;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
+.badge-container {
+    width: var(--card-width);
 }
 
-.timer {
-    font-size: 50px;
-    font-weight: 500;
-    color: #333333;
-    font-family: 'Stolzl', monospace;
-    letter-spacing: 2px;
-    line-height: 1;
-}
-
-.right-section {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-    z-index: 2;
-}
-
-.next-info {
+.employee-card {
+    width: var(--card-width);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    gap: 15px;
 }
 
-.next-label {
-    font-size: 24px;
-    font-weight: 400;
-    color: #333333;
-    margin-bottom: 4px;
-}
-
-.next-time {
-    font-size: 50px;
-    font-weight: 500;
-    color: #333333;
-    font-family: 'Stolzl', monospace;
-    letter-spacing: 2px;
-    line-height: 1;
-}
-
-.decorative-element {
+.employee-card__top {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 47px;
-    height: 85px;
-    margin: 0 20px; /* Отступы между элементами */
+    gap: 15px;
+    height: 86px;
+}
+
+.employee-card__logo {
+    width: 86px;
+    height: 86px;
+    border-radius: 26.46px;
+    overflow: hidden;
     flex-shrink: 0;
 }
 
-.decorative-element img {
+.employee-card__logo img {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
 }
 
-/* Стили для таймера без анимаций */
-.timer.warning {
-    color: #FF9800;
-}
-
-.timer.overdue {
-    color: #f44336;
-}
-
-/* Стили для информации о сотруднике */
-.employee-info {
-    display: flex;
-    gap: 12px; /* Отступ между PM и ФИО */
-    margin: 30px 0; /* Добавляем отступы сверху и снизу */
-    align-items: center;
-    width: auto; /* Ширина по содержимому */
-    justify-content: flex-start; /* Выравнивание по левому краю */
-}
-
-/* Общие стили для всех бейджей */
-.badge {
-    background: var(--primary-color, #E6DBCB);
-    color: #333333;
-    font-family: 'Stolzl', sans-serif;
-    font-weight: 500;
-    font-size: 40px;
-    padding: 24px 36px; /* Равномерные отступы */
-    border-radius: 24px; /* Равномерное скругление */
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 80px; /* Минимальная ширина */
-}
-
-/* Стили для зон ответственности */
-.responsibility-areas {
-    color: #EFEBE5; /* Цвет для Т-Банк */
-    font-family: 'Stolzl Book', sans-serif;
-    font-weight: 350;
-    font-size: 40px;
-    margin-top: 0;
-    margin-bottom: 0; /* Убираем нижний отступ */
-    text-align: left; /* Выравнивание по левому краю */
-    white-space: nowrap;
-    width: auto; /* Ширина по содержимому */
-}
-
-/* Стили для лоадера */
-.loader {
-    width: 650px; /* Такая же ширина как у бейджа встречи */
-    height: 145px; /* Такая же высота как у бейджа встречи */
-    background: rgba(230, 219, 203, 0.15); /* Тот же фон цвета Т-Банк с блюром */
-    backdrop-filter: blur(20px) saturate(1.2) brightness(1.1); /* Тот же блюр */
-    border: 3px solid var(--primary-color, #E6DBCB); /* Такая же граница */
-    border-radius: 30px; /* Такие же скругления */
+.employee-card__name-block {
+    width: 244px;
+    height: 86px;
+    background: var(--name-bg);
+    border-radius: 26.46px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
+}
+
+.employee-card__role {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 30px 0;
-    position: relative;
+    gap: 4px;
+    height: 23px;
 }
 
-.loader-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 10px;
+.employee-card__role-icon {
+    width: 23px;
+    height: 23px;
+    flex-shrink: 0;
+    display: block;
 }
 
-.loader-text {
-    color: #333333;
-    font-family: 'Stolzl', sans-serif;
-    font-weight: 500;
-    font-size: 18px;
+.employee-card__role-slash,
+.employee-card__role-text {
+    color: #333;
     text-align: center;
+    font-family: 'SF Pro', sans-serif;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.employee-card__full-name {
+    margin-top: 2px;
+    color: #333;
+    text-align: center;
+    font-family: 'T-Sans', sans-serif;
+    font-size: 30px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    white-space: nowrap;
 }
 
-
-
-* {
-    -webkit-font-smoothing: antialiased; /* Сглаживание шрифтов для Chrome/macOS */
-    -moz-osx-font-smoothing: grayscale;  /* Сглаживание шрифтов для Firefox/macOS */
-    backface-visibility: hidden;         /* Борьба с мерцанием и "плясками" */
-    -webkit-backface-visibility: hidden; /* Для старых WebKit-браузеров (Chrome, OBS) */
+.employee-card__areas {
+    color: var(--areas-color);
+    font-family: 'SF Pro', sans-serif;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
 }
-
-
-
