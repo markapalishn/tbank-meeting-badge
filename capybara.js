@@ -4,7 +4,7 @@
   const PAD = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--screen-padding'));
   const W = 146, H = 104;
   const TOP_Y = PAD + 4;
-  const BOT_Y = PAD + CARD_H - H - 4;
+  const BOT_Y = PAD + CARD_H + 30 - H - 4;
 
   const capy = document.querySelector('.capybara');
   const mug = capy.querySelector('.capybara__mug');
