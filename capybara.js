@@ -3,8 +3,8 @@
   const CARD_H = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-height'));
   const PAD = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--screen-padding'));
   const W = 146, H = 104;
-  const TOP_Y = -PAD + 8;
-  const BOT_Y = CARD_H - H + PAD - 8;
+  const TOP_Y = PAD + 4;
+  const BOT_Y = PAD + CARD_H - H - 4;
 
   const capy = document.querySelector('.capybara');
   const mug = capy.querySelector('.capybara__mug');
@@ -45,6 +45,10 @@
     capy.style.transform = dir === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
   }
 
+  function clamp(val, min, max) {
+    return Math.max(min, Math.min(max, val));
+  }
+
   function animate(props, duration, easing) {
     return new Promise(resolve => {
       const start = performance.now();
@@ -54,7 +58,12 @@
       (function tick(now) {
         const t = Math.min((now - start) / duration, 1);
         const e = ease(t);
-        for (const k in props) capy.style[k] = (from[k] + (props[k] - from[k]) * e) + 'px';
+        for (const k in props) {
+          let val = from[k] + (props[k] - from[k]) * e;
+          if (k === 'left') val = clamp(val, 0, CARD_W - W);
+          if (k === 'top') val = clamp(val, TOP_Y, BOT_Y);
+          capy.style[k] = val + 'px';
+        }
         t < 1 ? requestAnimationFrame(tick) : resolve();
       })(performance.now());
     });
