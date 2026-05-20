@@ -33,8 +33,7 @@ html,
 body {
     width: calc(var(--card-width) + var(--screen-padding) * 2);
     height: calc(var(--card-height) + var(--screen-padding) * 2);
-    /* TODO: временно серый фон для превью; для OBS вернуть transparent */
-    background: #808080;
+    background: transparent;
     overflow: hidden;
 }
 
