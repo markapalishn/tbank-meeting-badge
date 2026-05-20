@@ -2,9 +2,9 @@
   const CARD_W = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
   const CARD_H = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-height'));
   const PAD = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--screen-padding'));
-  const W = 73, H = 52;
-  const TOP_Y = -PAD + 4;
-  const BOT_Y = CARD_H - H + PAD - 4;
+  const W = 146, H = 104;
+  const TOP_Y = -PAD + 8;
+  const BOT_Y = CARD_H - H + PAD - 8;
 
   const capy = document.querySelector('.capybara');
   const mug = capy.querySelector('.capybara__mug');
