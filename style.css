@@ -2,9 +2,9 @@
     --name-bg: #DFD2BD;
     --text-dark: #333333;
     --areas-color: #EFEBE5;
-    --card-width: 345px;
-    --card-height: 149px;
-    --screen-padding: 30px;
+    --card-width: 690px;
+    --card-height: 298px;
+    --screen-padding: 60px;
 }
 
 @font-face {
@@ -59,14 +59,14 @@ body {
 .employee-card__top {
     display: flex;
     align-items: center;
-    gap: 15px;
-    height: 86px;
+    gap: 30px;
+    height: 172px;
 }
 
 .employee-card__logo {
-    width: 86px;
-    height: 86px;
-    border-radius: 26.46px;
+    width: 172px;
+    height: 172px;
+    border-radius: 52.92px;
     overflow: hidden;
     flex-shrink: 0;
 }
@@ -78,11 +78,11 @@ body {
 }
 
 .employee-card__name-block {
-    width: 244px;
-    height: 86px;
+    width: 488px;
+    height: 172px;
     background: var(--name-bg);
-    border-radius: 26.46px;
-    padding: 12px 14px;
+    border-radius: 52.92px;
+    padding: 24px 28px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -91,13 +91,13 @@ body {
 .employee-card__role {
     display: flex;
     align-items: center;
-    gap: 4px;
-    height: 23px;
+    gap: 8px;
+    height: 46px;
 }
 
 .employee-card__role-icon {
-    width: 23px;
-    height: 23px;
+    width: 46px;
+    height: 46px;
     flex-shrink: 0;
     display: block;
 }
@@ -107,18 +107,18 @@ body {
     color: #333;
     text-align: center;
     font-family: 'SF Pro', sans-serif;
-    font-size: 16px;
+    font-size: 32px;
     font-style: normal;
     font-weight: 400;
     line-height: normal;
 }
 
 .employee-card__full-name {
-    margin-top: 2px;
+    margin-top: 4px;
     color: #333;
     text-align: center;
     font-family: 'T-Sans', sans-serif;
-    font-size: 30px;
+    font-size: 60px;
     font-style: normal;
     font-weight: 500;
     line-height: normal;
@@ -128,7 +128,7 @@ body {
 .employee-card__areas {
     color: var(--areas-color);
     font-family: 'SF Pro', sans-serif;
-    font-size: 20px;
+    font-size: 40px;
     font-style: normal;
     font-weight: 400;
     line-height: normal;
@@ -137,9 +137,9 @@ body {
 /* Capybara */
 .capybara {
     position: absolute;
-    width: 73px;
-    height: 52px;
-    filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.15));
+    width: 146px;
+    height: 104px;
+    filter: drop-shadow(2px 2px 6px rgba(0, 0, 0, 0.15));
     z-index: 10;
 }
 
