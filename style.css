@@ -134,16 +134,21 @@ body {
     line-height: normal;
 }
 
-/* Capybara */
-.capybara {
+/* ═══ Кот ═══ */
+
+.cat {
     position: absolute;
-    width: 146px;
-    height: 104px;
-    filter: drop-shadow(2px 2px 6px rgba(0, 0, 0, 0.15));
+    width: 128px;
+    height: 96px;
+    filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.2));
     z-index: 10;
 }
 
-.capybara svg {
+.cat.flip {
+    transform: scaleX(-1);
+}
+
+.cat .cat__frame {
     position: absolute;
     top: 0;
     left: 0;
@@ -157,113 +162,116 @@ body {
 }
 
 /* Подпрыгивание при ходьбе */
-.capybara--walking {
-    animation: capy-bounce 0.35s steps(2) infinite;
+.cat--walking {
+    animation: cat-bounce 0.34s steps(2) infinite;
 }
 
-@keyframes capy-bounce {
+@keyframes cat-bounce {
     0%, 100% { margin-top: 0; }
-    50% { margin-top: -4px; }
+    50% { margin-top: -3px; }
 }
 
-/* Дыхание при сне */
-.capybara--sleeping {
-    animation: capy-breathe 1.8s ease-in-out infinite;
+/* Дыхание во сне */
+.cat--sleeping {
+    animation: cat-breathe 2s ease-in-out infinite;
 }
 
-@keyframes capy-breathe {
-    0%, 100% { margin-top: 0; }
-    50% { margin-top: 2px; }
-}
-
-/* Покачивание при еде */
-.capybara--eating {
-    animation: capy-munch 0.45s steps(2) infinite;
-}
-
-@keyframes capy-munch {
+@keyframes cat-breathe {
     0%, 100% { margin-top: 0; }
     50% { margin-top: 2px; }
 }
 
-/* Обнюхивание */
-.capybara--sniffing {
-    animation: capy-sniff 0.5s steps(2) infinite;
+/* Умывание */
+.cat--grooming {
+    animation: cat-groom 0.6s steps(2) infinite;
 }
 
-@keyframes capy-sniff {
+@keyframes cat-groom {
     0%, 100% { margin-top: 0; }
     50% { margin-top: 1px; }
 }
 
-/* Сидит (читает / работает) */
-.capybara--sitting {
-    animation: capy-sit 2.5s ease-in-out infinite;
-}
+/* ═══ Эмоции над головой ═══ */
 
-@keyframes capy-sit {
-    0%, 100% { margin-top: 0; }
-    50% { margin-top: 1px; }
-}
-
-/* Кружка */
-.capybara__mug {
+.cat__emote {
     position: absolute;
-    width: 16px;
-    height: 18px;
-    top: -2px;
-    left: -14px;
+    left: 76px;
+    top: -28px;
+    filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.35));
+    z-index: 11;
 }
 
-/* Ноги при ходьбе */
-.leg-fl {
-    animation: leg-l 0.35s steps(2) infinite;
-}
-.leg-fr {
-    animation: leg-r 0.35s steps(2) infinite;
+.cat.flip .cat__emote {
+    transform: scaleX(-1);
 }
 
-@keyframes leg-l {
-    0%, 100% { y: 30; }
-    50% { y: 28; }
-}
-@keyframes leg-r {
-    0%, 100% { y: 30; }
-    50% { y: 32; }
+.cat__emote--pop {
+    animation: emote-pop 0.25s ease-out;
+    transform-origin: bottom center;
 }
 
-/* Хвост */
-.tail {
-    animation: tail-wag 0.4s steps(2) infinite;
-    transform-origin: 40px 20px;
+@keyframes emote-pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
-@keyframes tail-wag {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-8deg); }
-    75% { transform: rotate(8deg); }
+.cat__emote--zzz {
+    left: 70px;
+    top: -34px;
 }
 
-/* Еда перед мордочкой */
-.food {
-    animation: food-bob 0.45s steps(2) infinite;
+.cat__emote--zzz svg {
+    position: absolute;
+    animation: zzz-float 1.8s ease-in-out infinite;
 }
 
-@keyframes food-bob {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+.cat__emote--zzz svg:nth-child(2) {
+    left: 12px;
+    top: -10px;
+    animation-delay: 0.6s;
 }
 
-/* Zzz */
-.zzz {
-    animation: zzz-float 1.2s ease-in-out infinite;
+.cat__emote--zzz svg:nth-child(3) {
+    left: 24px;
+    top: -20px;
+    animation-delay: 1.2s;
 }
-.zzz-2 { animation-delay: 0.3s; }
-.zzz-3 { animation-delay: 0.6s; }
 
 @keyframes zzz-float {
-    0% { opacity: 0; transform: translateY(0); }
+    0% { opacity: 0; margin-top: 0; }
     30% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-5px); }
+    100% { opacity: 0; margin-top: -8px; }
+}
+
+/* ═══ Реквизит ═══ */
+
+.butterfly {
+    position: absolute;
+    z-index: 12;
+    filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.25));
+}
+
+.laser {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff8a80 0%, #e53935 55%, rgba(229, 57, 53, 0) 75%);
+    box-shadow: 0 0 10px 3px rgba(229, 57, 53, 0.55);
+    z-index: 13;
+    animation: laser-pulse 0.7s ease-in-out infinite;
+}
+
+@keyframes laser-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+}
+
+.mug {
+    position: absolute;
+    z-index: 6;
+    filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.2));
+    transform-origin: 50% 90%;
 }
 
