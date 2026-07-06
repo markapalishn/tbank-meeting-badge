@@ -77,30 +77,32 @@
   ];
 
   const LEGS_STAND = [
-    '..OBO.SS...SS.OBO..',
-    '..OBO.SS...SS.OBO..',
-    '..OBO.SS...SS.OBO..',
-    '..OBO.SS...SS.OBO..',
-    '..OBO.SS...SS.OBO..',
-    '..OOO.........OOO..',
+    '..OBO.OBO..OBO.OBO.',
+    '..OBO.OBO..OBO.OBO.',
+    '..OBO.OBO..OBO.OBO.',
+    '..OBO.OBO..OBO.OBO.',
+    '..OBO.OOO..OOO.OBO.',
+    '..OOO..........OOO.',
   ];
 
+  // Шаг 1: внешние лапы расставлены, внутренняя пара собрана и поднята
   const LEGS_WALK_A = [
-    '..OBO..SS.SS..OBO..',
-    '..OBO..SS.SS..OBO..',
-    '..OBO..SS.SS..OBO..',
-    '..OBO..SS.SS..OBO..',
-    '..OBO.........OBO..',
-    '..OOO.........OOO..',
+    '..OBO..OBOOBO..OBO.',
+    '..OBO..OBOOBO..OBO.',
+    '..OBO..OBOOBO..OBO.',
+    '..OBO..OOOOOO..OBO.',
+    '..OBO..........OBO.',
+    '..OOO..........OOO.',
   ];
 
+  // Шаг 2: внутренняя пара стоит, внешние лапы подняты
   const LEGS_WALK_B = [
-    '..OBO.SS...SS.OBO..',
-    '..OBO.SS...SS.OBO..',
-    '..OBO.SS...SS.OBO..',
-    '..OOO.SS...SS.OOO..',
-    '......SS...SS......',
-    '...................',
+    '.OBO..OBOOBO...OBO.',
+    '.OBO..OBOOBO...OBO.',
+    '.OOO..OBOOBO...OOO.',
+    '......OBOOBO.......',
+    '......OBOOBO.......',
+    '......OOOOOO.......',
   ];
 
   const LEGS_FOLDED = [
@@ -482,6 +484,14 @@
   };
 
   let frameTimer = null;
+  let shownFrame = null;
+
+  function showFrame(name) {
+    if (name === shownFrame) return;
+    shownFrame = name;
+    Object.values(frameEls).forEach(el => { el.style.display = 'none'; });
+    frameEls[name].style.display = '';
+  }
 
   function setState(name) {
     const st = STATES[name];
@@ -491,8 +501,7 @@
     let i = 0;
     (function step() {
       const idx = i % st.frames.length;
-      Object.values(frameEls).forEach(el => { el.style.display = 'none'; });
-      frameEls[st.frames[idx]].style.display = '';
+      showFrame(st.frames[idx]);
       if (st.frames.length > 1) {
         const d = st.durations ? st.durations[idx] : st.ms;
         i++;
@@ -512,7 +521,8 @@
     px = x; pfeet = feetY;
   }
 
-  // Прыжок по дуге
+  // Прыжок по дуге. Возле верхней кромки экрана кот группируется
+  // (кадр «crouch1»), чтобы вытянутая голова не уходила за край.
   function jumpArc(toX, toFeetY, height, dur) {
     return new Promise(resolve => {
       const fromX = px, fromY = pfeet;
@@ -522,6 +532,7 @@
         const t = Math.min((now - start) / dur, 1);
         const x = fromX + (toX - fromX) * t;
         const y = fromY + (toFeetY - fromY) * t - height * 4 * t * (1 - t);
+        showFrame(y > 45 ? 'pounce' : 'crouch1');
         cat.style.left = x + 'px';
         cat.style.top = (y - H) + 'px';
         if (t < 1) requestAnimationFrame(tick);
@@ -667,9 +678,9 @@
 
   async function lookAround() {
     face('left');
-    await delay(550);
+    await delay(750);
     face('right');
-    await delay(550);
+    await delay(750);
   }
 
   /* ═══ Сценарий: охота на бабочку ═══ */
@@ -683,12 +694,12 @@
 
     // Заметил
     setState('stand');
-    await emote('!', 900);
+    await emote('!', 1200);
 
     // Крадётся и виляет хвостом
     await move(280, FLOOR, 'crouch');
     setState('wiggle');
-    await delay(1000);
+    await delay(1700);
 
     // Прыжок — бабочка ускользает
     const dart = (async () => { await delay(120); await bflyTo(560, 140, 700, 4); })();
@@ -697,23 +708,21 @@
 
     // Растерялся
     setState('sit');
-    await emote('?', 1000);
+    await emote('?', 1500);
     await lookAround();
 
     // Бабочка садится на нос
     const nose = nosePoint();
     await bflyTo(nose.x - 12, nose.y - 18, 1400, 6);
     setState('sit');
-    await delay(1600);
+    await delay(3200);
 
     // Улетает — кот пытается её поймать и убегает следом
-    const away = bflyTo(CARD_W + 40, 120, 1300, 6);
+    const away = bflyTo(CARD_W + 40, 120, 1600, 6);
     await delay(250);
     await jumpArc(px + 46, FLOOR2, 34, 320);
-    setState('run');
-    await away;
-    bflyHide();
     await leave(true, 'run');
+    bflyHide();
   }
 
   /* ═══ Сценарий: лазерная точка ═══ */
@@ -721,14 +730,14 @@
   async function laserChase() {
     await walkIn(false, 400, FLOOR2);
     setState('sit');
-    await delay(900);
+    await delay(2000);
     setState('groom');
-    await delay(2200);
+    await delay(4200);
 
     // Точка!
     laserShow(90, 116);
     setState('stand');
-    await emote('!', 800);
+    await emote('!', 1100);
 
     const spots = [
       { x: 90, y: 116 },
@@ -741,21 +750,21 @@
       await move(target, FLOOR, 'run');
       await jumpArc(target + 18, FLOOR, 24, 300);
       setState('crouchStill');
-      await delay(420);
+      await delay(700);
     }
 
     // Накрыл лапами — а точки нет
     laserHide();
-    await delay(800);
+    await delay(1400);
     setState('sit');
-    await emote('?', 1100);
+    await emote('?', 1500);
     await lookAround();
 
     // Точка появляется у него на спине — но он уже не видит
     laserShow(px + 34, pfeet - H + 44);
-    await delay(900);
+    await delay(1800);
     laserHide();
-    await delay(400);
+    await delay(700);
     await leave(false);
   }
 
@@ -768,38 +777,38 @@
 
     await walkIn(true, 430);
     setState('sit');
-    await delay(700);
-    await emote('!', 900);
+    await delay(1500);
+    await emote('!', 1100);
 
     // Запрыгивает на плашку
     setState('crouchStill');
-    await delay(500);
+    await delay(900);
     await jumpArc(468, ROOF, 46, 520);
     setState('crouchStill');
-    await delay(400);
+    await delay(900);
 
     // Крадётся к кружке
     await move(498, ROOF, 'crouch');
     setState('crouchStill');
-    await delay(900);
+    await delay(1500);
 
     // Толкает: раз... два... и в пропасть
     await mugNudge(-7, 0);
-    await delay(900);
+    await delay(1300);
     await mugNudge(-10, 8);
-    await delay(1100);
+    await delay(1600);
     await mugFall();
 
     // Смотрит вниз на дело лап своих
     await move(576, ROOF, 'crouch');
-    await delay(1300);
+    await delay(2400);
 
     // Спрыгивает, обнюхивает, доволен
     await jumpArc(560, FLOOR, 30, 480);
     setState('crouchStill');
-    await delay(900);
+    await delay(1600);
     setState('sit');
-    await emote('heart', 1300);
+    await emote('heart', 1800);
 
     // Уходит с чувством выполненного долга
     await leave(true);
@@ -813,28 +822,28 @@
     face('right');
 
     setState('stretch');
-    await delay(1500);
+    await delay(2600);
     setState('sit');
-    await delay(1200);
+    await delay(2200);
     setState('groom');
-    await delay(3000);
+    await delay(5000);
 
     // Сворачивается и засыпает
     setState('sleep');
     zzzShow();
-    await delay(3500);
+    await delay(6000);
 
     // Мимо пролетает бабочка — ухо не дрогнуло
     bflyShow(CARD_W + 30, 40);
     bflyTo(-40, 90, 3200).then(bflyHide);
-    await delay(4500);
+    await delay(7000);
 
     // Просыпается
     zzzHide();
     setState('sit');
-    await delay(1400);
+    await delay(2400);
     setState('stretch');
-    await delay(1300);
+    await delay(2200);
 
     await leave(false);
   }
