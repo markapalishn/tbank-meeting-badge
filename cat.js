@@ -31,8 +31,7 @@
     W: '#ffffff', // блик
     I: '#bee3ed', // ледяная тень
     C: '#a32338', // тень на колпаке
-    R: '#d9534a', // кружка, сердечко
-    Y: '#ffdd2d', // бабочка, эмоции
+    R: '#d9534a', // колпак и нить
   };
 
   /* ═══ Детали спрайта ═══ */
@@ -56,13 +55,6 @@
   const HEAD_CLOSED = HEAD.map((row, i) => {
     if (i === 5) return 'OBBBBBBBBBBBO';
     if (i === 6) return 'OBBEEBBBEEBBO';
-    return row;
-  });
-
-  const HEAD_LOOK = HEAD.map((row, i) => {
-    if (i === 4) return 'OBBBEWBBBEWBO';
-    if (i === 5) return 'OBBBEEBBBEEBO';
-    if (i === 6) return 'OBBBBBBBBBBBO';
     return row;
   });
 
@@ -261,7 +253,7 @@
     const g = emptyGrid();
     parts.forEach(([art, x, y]) => {
       stamp(g, art, x, y + HAT_SPACE);
-      if (art === HEAD || art === HEAD_CLOSED || art === HEAD_LOOK) stamp(g, HAT, x - 1, y + hatDrop);
+      if (art === HEAD || art === HEAD_CLOSED) stamp(g, HAT, x - 1, y + hatDrop);
     });
     FRAMES[name] = g.map(r => r.join(''));
   }
@@ -326,9 +318,6 @@
   makeFrame('snow-nose', [...SEATED, [HEAD, 4, 0], [SNOW, 8, 6]]);
   makeFrame('sneeze', [...SEATED, [HEAD_CLOSED, 7, 3], [REACH, 12, 13]]);
 
-  makeFrame('warm', [...SEATED, [HEAD_CLOSED, 5, 2], [REACH, 13, 12], [REACH, 11, 16]]);
-  makeFrame('look-up', [...SEATED, [HEAD_LOOK, 7, 0]]);
-
   const THREAD = [
     '..RRR', '.RR..', 'RR...', 'RR...', '.RR..', '..RR.', '...RR',
     '....RR', '.....RR', '......RR', '.......RR', '........RR',
@@ -349,26 +338,6 @@
   const FLAKE_B = [
     '...W...', '.I.W.I.', '..WWW..', 'IIWWWII', '..WWW..', '.I.W.I.', '...W...',
   ];
-
-  const MUG = [
-    '.OOOOOO...',
-    'OLLLLLLO..',
-    'ORRRRRROO.',
-    'ORRRRRRO.O',
-    'ORRRRRRO.O',
-    'ORRRRRROO.',
-    'ORRRRRRO..',
-    '.OOOOOO...',
-  ];
-
-  const COCOA = ['.OOOOOOOOO...', 'OLSSLOLLLLO..', 'ORRRRRRRRROO.',
-    'OCRRWWRRRRO.O', 'OCRWWWWRRRO.O', 'OCRRWWRRRROO.', 'OCCRRRRRRRO..', '.OOOOOOOOO...'];
-  const STEAM = ['...II..', '..IWWI.', '.IWWI..', '.IWI...', '..IWI..', '...IWI.', '..IWI..'];
-  const STEAM_FISH = ['......II......', '...IIWWWI...II', '.IIWWWWWWI.IIW',
-    'IWWOEWWWWWIWWW', '.IWWWWWWWI.IIW', '...IIWWWI...II', '......II......'];
-
-  const EM_HEART = ['.RR.RR.', 'RRRRRRR', 'RRRRRRR', '.RRRRR.', '..RRR..', '...R...'];
-  const EM_Z = ['YYYY', '..Y.', '.Y..', 'YYYY'];
 
   /* ═══ Рендер сетки в SVG ═══ */
 
@@ -419,8 +388,7 @@
       cell.appendChild(label);
       sheet.appendChild(cell);
     });
-    [['snowflake A', FLAKE_A], ['snowflake B', FLAKE_B], ['mug', MUG], ['cocoa', COCOA], ['fish', STEAM_FISH],
-     ['heart', EM_HEART], ['z', EM_Z]].forEach(([n, art]) => {
+    [['snowflake A', FLAKE_A], ['snowflake B', FLAKE_B]].forEach(([n, art]) => {
       const cell = document.createElement('div');
       cell.style.cssText = 'text-align:center;color:#222;';
       const svg = svgFromGrid(art, 6);
@@ -457,10 +425,6 @@
     frameEls[name] = svg;
   });
 
-  const emoteEl = document.createElement('div');
-  emoteEl.className = 'cat__emote';
-  cat.appendChild(emoteEl);
-
   const flakeEl = document.createElement('div');
   flakeEl.className = 'snowflake';
   const flakeFrames = [svgFromGrid(FLAKE_A, 3), svgFromGrid(FLAKE_B, 3)];
@@ -472,12 +436,6 @@
   laserEl.className = 'laser';
   laserEl.style.display = 'none';
   container.appendChild(laserEl);
-
-  const mugEl = document.createElement('div');
-  mugEl.className = 'mug';
-  mugEl.appendChild(svgFromGrid(MUG, 3));
-  mugEl.style.display = 'none';
-  container.appendChild(mugEl);
 
   /* ═══ Анимационные утилиты ═══ */
 
@@ -657,30 +615,6 @@
     });
   }
 
-  /* ═══ Эмоции ═══ */
-
-  async function showHeart(ms) {
-    emoteEl.innerHTML = '';
-    emoteEl.className = 'cat__emote cat__emote--pop';
-    emoteEl.appendChild(svgFromGrid(EM_HEART, 3));
-    emoteEl.style.display = '';
-    await delay(ms || 1100);
-    emoteEl.style.display = 'none';
-    emoteEl.className = 'cat__emote';
-  }
-
-  function zzzShow() {
-    emoteEl.innerHTML = '';
-    emoteEl.className = 'cat__emote cat__emote--zzz';
-    for (let i = 0; i < 3; i++) emoteEl.appendChild(svgFromGrid(EM_Z, 3));
-    emoteEl.style.display = '';
-  }
-
-  function zzzHide() {
-    emoteEl.style.display = 'none';
-    emoteEl.className = 'cat__emote';
-  }
-
   /* ═══ Снежинка ═══ */
 
   const flake = { x: 0, y: 0, frame: 0, flap: null };
@@ -748,42 +682,6 @@
 
   function laserHide() { laserEl.style.display = 'none'; }
 
-  /* ═══ Кружка ═══ */
-
-  function mugShow(x, topY) {
-    mugEl.style.left = x + 'px';
-    mugEl.style.top = topY + 'px';
-    mugEl.style.opacity = '1';
-    mugEl.style.transform = '';
-    mugEl.style.transition = '';
-    mugEl.style.display = '';
-  }
-
-  async function mugNudge(angle, dx) {
-    const left = parseFloat(mugEl.style.left);
-    mugEl.style.transition = 'transform .12s ease-out, left .12s ease-out';
-    mugEl.style.transform = 'rotate(' + angle + 'deg)';
-    mugEl.style.left = left + dx + 'px';
-    await delay(140);
-    mugEl.style.transform = '';
-  }
-
-  async function mugFall() {
-    const left = parseFloat(mugEl.style.left);
-    mugEl.style.transition = 'left .55s cubic-bezier(.4,0,1,1), top .55s cubic-bezier(.4,0,1,1), transform .55s linear';
-    mugEl.style.left = left + 36 + 'px';
-    mugEl.style.top = '106px';
-    mugEl.style.transform = 'rotate(-104deg)';
-    await delay(600);
-  }
-
-  async function mugHideSoft() {
-    mugEl.style.transition = 'opacity .6s';
-    mugEl.style.opacity = '0';
-    await delay(650);
-    mugEl.style.display = 'none';
-  }
-
   /* ═══ Общие ходы ═══ */
 
   async function snowflakeHunt() {
@@ -828,23 +726,6 @@
     await delay(950);
   }
 
-  async function mugHeist() {
-    mugShow(CARD_W - 50, ROOF - 24);
-    await move(340);
-    setState('sit');
-    face('right');
-    await delay(750);
-    await move(RIGHT, 'crouch');
-    setState('crouchStill');
-    await mugNudge(-9, 8);
-    await delay(420);
-    await mugNudge(-17, 14);
-    await mugFall();
-    setState('sit');
-    await showHeart(1200);
-    await mugHideSoft();
-  }
-
   async function pose(frame, ms) {
     setState('stand');
     showFrame(frame);
@@ -883,31 +764,6 @@
     await Promise.all(spray);
   }
 
-  async function hotCocoa() {
-    const rim = CARD_W - 82;
-    const mug = winterProp(COCOA, 4, rim, ROOF - 32);
-    await move(rim - 78);
-    face('right');
-    const curl = winterProp(STEAM, 3, rim + 8, ROOF - 48);
-    await Promise.all([
-      pose('warm', 1700),
-      tween(curl, { top: ROOF - 76 }, 1700, 'easeOut'),
-    ]);
-    curl.remove();
-    const fish = winterProp(STEAM_FISH, 4, rim - 4, ROOF - 88);
-    await Promise.all([
-      pose('look-up', 1150),
-      tween(fish, { left: rim + 18, top: ROOF - 110 }, 1150, 'easeOut'),
-    ]);
-    const wisp = winterProp(STEAM, 3, rim + 35, ROOF - 110);
-    fish.remove();
-    await tween(wisp, { left: rim + 50, top: ROOF - 128 }, 400, 'easeOut');
-    wisp.remove();
-    setState('sit');
-    await delay(450);
-    mug.remove();
-  }
-
   async function looseYarn() {
     await move(350);
     face('right');
@@ -929,17 +785,15 @@
     setState('groom');
     await delay(2400);
     setState('sleep');
-    zzzShow();
     await delay(5200);
-    zzzHide();
     setState('stretch');
     await delay(1200);
   }
 
   /* ═══ Цикл жизни ═══ */
 
-  const scenarios = [snowflakeHunt, laserChase, mugHeist, catNap, snowballSneeze, hotCocoa, looseYarn];
-  const names = ['butterfly', 'laser', 'mug', 'nap', 'snowball', 'cocoa', 'yarn'];
+  const scenarios = [snowflakeHunt, laserChase, catNap, snowballSneeze, looseYarn];
+  const names = ['butterfly', 'laser', 'nap', 'snowball', 'yarn'];
   // ?scenario=<имя> повторяет выбранную сцену.
   const forced = names.indexOf(new URLSearchParams(location.search).get('scenario'));
   let lastIdx = -1;
