@@ -1,527 +1,17 @@
-/* Пиксельный кот-тамагочи для бейджа.
-   Спрайты собираются из «деталей» (голова, тело, лапы, хвост) на сетке
-   32×29, каждый символ — один пиксель. Точка — прозрачность. */
+/* Движение кота и сцены бейджа для OBS. */
 (function () {
   'use strict';
 
-  /* ═══ Сцена ═══ */
-
+  const {
+    GRID_W, GRID_H, HAT_SPACE, FRAMES, FLAKE_A, FLAKE_B, SNOW, SCOOP_SNOW, THROW_SNOW, svgFromGrid,
+  } = catSprites;
   const css = getComputedStyle(document.documentElement);
   const CARD_W = parseInt(css.getPropertyValue('--card-width')) || 690;
-
   const SCALE = 4;
-  const HAT_SPACE = 5;
-  const GRID_W = 32, GRID_H = 24 + HAT_SPACE;
-  const W = GRID_W * SCALE;   // 128
-  const H = GRID_H * SCALE;   // 116
-
+  const W = GRID_W * SCALE, H = GRID_H * SCALE;
   const ROOF = -4;
   const LEFT = 26;
   const RIGHT = CARD_W - W - 24;
-
-  /* ═══ Палитра ═══ */
-
-  const PALETTE = {
-    O: '#3a2a20', // контур
-    B: '#e69a45', // рыжая шерсть
-    S: '#c1732e', // полоски и дальние лапы
-    L: '#f8e3c0', // грудка, мордочка, кончик хвоста
-    P: '#ef9f9c', // уши, нос
-    E: '#241811', // глаза
-    W: '#ffffff', // блик
-    I: '#bee3ed', // ледяная тень
-    C: '#a32338', // тень на колпаке
-    R: '#d9534a', // колпак и нить
-  };
-
-  /* ═══ Детали спрайта ═══ */
-
-  // Отворот, выступающее ухо и лоб нарисованы вместе для каждого ракурса.
-  const FRONT_CAP = [
-    '.......CCCCC.....',
-    '.....CCRRRRRCC...',
-    '...CCRRRRRRRRC..O',
-    '..CRRRCCRRRRRCOBO',
-    '.CRRCCCRRRRRCOPPO',
-    '.WICCCRRRRRCOBPBO',
-    'IWWI.CRRRWWWOBPBO',
-    '.II.OIWWWWWWWIBBO',
-    '...OBIWWWWWIISBBO',
-    '..OBBBIIISBSBBBBO',
-  ];
-
-  const FRONT_MUZZLE = [
-    '..OSBBLLBPBLLBBSO',
-    '...OBLLLLOLLLLBO.',
-    '....OBBLLLLLBBO..',
-    '.....OOSLLLSOO...',
-    '.......OSLSO.....',
-  ];
-
-  const HEAD = [
-    ...FRONT_CAP,
-    '..OSBEWBBBBBEWBSO',
-    '..OBBEEBBBBBEEBBO',
-    ...FRONT_MUZZLE,
-  ];
-
-  const HEAD_CLOSED = [
-    ...FRONT_CAP,
-    '..OSBBBBBBBBBBBSO',
-    '..OBBEEBBBBBEEBBO',
-    ...FRONT_MUZZLE,
-  ];
-
-  const SIDE_CAP = [
-    '......CCCCC......',
-    '....CCRRRRRCC....',
-    '..CCRRRRRRRRC..O.',
-    '.CRRRCCRRRRRCOBO.',
-    '.CRCCCRRRRRCOPPO.',
-    '.WICCRRRRRCOBPBO.',
-    'IWWICRRRWWWOBPBO.',
-    '.IIOIWWWWWWWIBBO.',
-    '...OIWWWWWIISBBO.',
-  ];
-
-  const SIDE_MUZZLE = [
-    '...OBBBLLLBLLLBPO',
-    '...OSBLLLLLLLLOO.',
-    '....OBBLLLLLLLO..',
-    '.....OOSLLSBOO...',
-    '.......OSSBO.....',
-  ];
-
-  const HEAD_SIDE = [
-    ...SIDE_CAP,
-    '..OBBIIISBBSBBBBO',
-    '..OSBBBBBEWBBBEBO',
-    '..OBSSBBBEEBBBEO.',
-    ...SIDE_MUZZLE,
-  ];
-
-  const HEAD_ASLEEP = [
-    ...SIDE_CAP,
-    '..OBBIIISBBSBBBBO',
-    '..OSBBBBBBBBBBBO.',
-    '..OBSSBBEEEBBEEO.',
-    ...SIDE_MUZZLE,
-  ];
-
-  // Кот тянет за нить: край опускается на глаза и затем приподнимается лапой.
-  const HEAD_HAT_DOWN = [
-    '.................',
-    '........CCCCC....',
-    '......CCRRRRRCC..',
-    '....CCRRRRRRRRCO.',
-    '...CRRRCCRRRRROBO',
-    '..CRRCCCRRRRRCOPO',
-    '..CRCCRRRRRRRCOBO',
-    '..WICRRRRRRRRRCBO',
-    '.IWWICRRRRRRRRCCO',
-    '..IICWWRRRRRRWWIO',
-    '...OIWWWWWWWWWWIO',
-    '..OBIIWWWWWWWIIIO',
-    ...FRONT_MUZZLE,
-  ];
-
-  const HEAD_HAT_LIFT = [
-    '.................',
-    '.......CCCCC.....',
-    '.....CCRRRRRCC..O',
-    '...CCRRRRRRRRCOBO',
-    '..CRRRCCRRRRRCBPO',
-    '.CRRCCCRRRRRCOPBO',
-    '.WICCCRRRRRRCCBBO',
-    'IWWICRRRRRRWWIIBO',
-    '.II.OIWWWWWWWWIBO',
-    '...OBIWWWWWWWISBO',
-    '..OBBBIIIISIIBBBO',
-    '..OBBEEBBBBBEEBBO',
-    ...FRONT_MUZZLE,
-  ];
-
-  const BODY_SIDE = [
-    '....OOOOOOO......OOOO',
-    '..OOBBBSSBBOOOOOOBBLLO',
-    '.OBBSBBSBBBBSSBBBBBLLLO',
-    'OBBBBSSBBBBBBSBBBBBLLLO',
-    'OBBBBBBBBBBBBBBBBBLLLLO',
-    'OBBBBBBSBBBBBBBBBLLLLSO',
-    '.OBBBBBBSBBSSLLLLLLLBO',
-    '..OBBBSBSOOOOOOOOOBBO',
-  ];
-
-  const BODY_LOW = [
-    '....OOOOOO.......OOO',
-    '..OOBBSSBBOOOOOOOBBLO',
-    '.OBSBBBSBBBBSSBBBBBLLO',
-    'OBBBSBBBBBBBBSBBBBLLLLO',
-    'OBBBBBBSBBBBBBBBBLLLLLO',
-    '.OBBBBBBSSBBBSSLLLLBBO',
-    '..OBSSSSSOOOOOOOOBBBO',
-  ];
-
-  const LEGS_STAND = [
-    '.OBBBOOSSO.....OSSOBBBO',
-    '.OBBBOOSSO.....OSSOBBO',
-    '..OBBO.OSO.....OSOOBBO',
-    '..OBO..OSSO....OSSOBO',
-    '..OLLO.OOOO....OOOOLLO',
-    '..OOOO............OOOO',
-  ];
-
-  // Ближняя передняя лапа тянется вперёд, задняя отталкивается.
-  const LEGS_WALK_A = [
-    '..OBBBOSSO......OSOBBBO',
-    '.OBBBO.OSSO....OSSOOBBO',
-    '.OBBO...OSSO..OSSO..OBBO',
-    'OBBO....OOOO..OOOO...OBBO',
-    'OLLO..................OLLO',
-    'OOOO..................OOOO',
-  ];
-
-  // Во второй фазе ближние лапы проходят под животом.
-  const LEGS_WALK_B = [
-    '..OBBBO...........OBBBO',
-    '.OSOBBBO.........OBBBOO',
-    '.OSOOBBO........OBBBOSSO',
-    'OSSO.OBBO......OBBBO.OSSO',
-    'OOOO..OLLO....OLLO...OOOO',
-    '......OOOO....OOOO',
-  ];
-
-  const LEGS_FOLDED = [
-    '.OBBBSSSO........OBBBSO',
-    '..OBBLLLO........OBBLLO',
-    '...OOOOOO........OOOOOO',
-  ];
-
-  const LEGS_POUNCE = [
-    '..OBBBSSO.......OSOBBBSO',
-    '.OBBBSOSSO.......OSOBBBBO',
-    'OBBBOO.OOOO.......OOOOBBBOO',
-    'OLLO.................OOBBLLO',
-    'OOO....................OOOOO',
-  ];
-
-  const TAIL_UP = [
-    '..OOO',
-    '.OLLLO',
-    'OLLOO',
-    'OSSO',
-    'OBBO',
-    'OBBSO',
-    '.OBBBO',
-    '..OSBBO',
-    '...OSBBO',
-  ];
-
-  const TAIL_UP2 = [
-    '...OOO',
-    '..OLLLO',
-    '.OLLOO',
-    '.OSSO',
-    'OBBBO',
-    'OBBO',
-    'OBBSO',
-    '.OBBBO',
-    '..OSBBBO',
-  ];
-
-  const TAIL_SIT = [
-    '.OOO...........',
-    'OSSBO..........',
-    'OBSBO..........',
-    'OBBSBO.........',
-    '.OBBSBO..OOOO..',
-    '..OBBBSSSBLLLO.',
-    '...OOOOOOOOOO..',
-  ];
-
-  const SIT_BODY = [
-    '.........OOOOO.....',
-    '.......OOBBLLLO....',
-    '......OBBBLLLLLO...',
-    '.....OBBBBLLLLLO...',
-    '....OSSBBBLLLLLBO..',
-    '...OBBSSBBBLLLSBBO.',
-    '..OBBBBBBBBSLLSBBO.',
-    '.OBSSBBBBBBBLBSBBO.',
-    'OBBBBSSBBBBBBBSBBO.',
-    'OBBBBBBSSBBBBSBSBO.',
-    'OBBBBBBBBSBBBSBSBO.',
-    'OBBBBBBBBBSBBSBSBO.',
-    '.OBBBBBBBSSBBOSBBO.',
-    '..OSBBBSSOBLLOOLLO.',
-    '...OOOOOOOOOOOOOOO.',
-  ];
-
-  const GROOM_BODY = [
-    ...SIT_BODY.slice(0, 7),
-    '.OBSSBBBBBBBLBSBO..',
-    'OBBBBSSBBBBBBBSBO..',
-    'OBBBBBBSSBBBBSBO...',
-    'OBBBBBBBBSBBBSBO...',
-    'OBBBBBBBBBSBBSBO...',
-    '.OBBBBBBBSSBBSBO...',
-    '..OSBBBSSOBBLLOO...',
-    '...OOOOOOOOOOOO....',
-  ];
-
-  const PAW_UP = [
-    '.OO..',
-    'OLLO.',
-    'OLLO.',
-    '.OBBO',
-    '.OBBO',
-    '.OSBO',
-    '.OBBO',
-    '..OO.',
-  ];
-
-  const SLEEP_BODY = [
-    '.......OOOOOOO.........',
-    '.....OOBBSBBSBOO.......',
-    '...OOBBBSSBBBSSBOO.....',
-    '..OBBBBSSBBBBBSSBBO....',
-    '.OBBBBSSBBBBBBBBBBBO...',
-    '.OBBBBBBBBBBBSSBBBBBO..',
-    'OBBBBBBSSBBBBBSSBBBBBO.',
-    'OBBBBBBBBSSBBBBBBBLLLBO',
-    'OBBBBBBBBBBBBBBLLLLLLBO',
-    '.OBBBBBBBBBBSBLLLLLLBO.',
-    '..OOSBBBBBBSSBBLLLBOO..',
-    '....OOOOOOOOOOOOOOO....',
-  ];
-
-  const SLEEP_TAIL = [
-    '.OO....................',
-    'OSSBO................OOO.',
-    'OBSBO...............OLLLO',
-    'OBBSBO............OBLLLO.',
-    '.OBBSBO.........OOSBBBO..',
-    '..OBBSBOO....OOOSBBBBO...',
-    '...OBBBSSOOOOSBBBBBO.....',
-    '....OBBBSSBBBSBBOO.....',
-    '.....OOOOOOOOOOO.......',
-  ];
-
-  const STRETCH_BODY = [
-    '....OOOOO',
-    '..OOBBSBBO',
-    '.OBBSBBSBBOO',
-    '.OBBBSBBBBBBOO',
-    '.OBBBBBBSBBBBBOOO',
-    '.OBBBBBBSSBBBBBBBOO',
-    '..OBBBBBBSBBBBBBBBLO',
-    '..OBBBOSSSOBBBBBBLLLO',
-    '..OBBO.OSSOOOSBLLLLLO',
-    '..OBO..OSO...OOBBLLO',
-    '.OBLO..OSSO....OBBLO',
-    '.OOOO..OOOO.....OOOO',
-  ];
-
-  const FRONT_FLAT = [
-    'OSSOSSSSSSOOO',
-    'OBBBBBBBOOOLLO',
-    '.OOOOOOOOOOOOO',
-  ];
-
-  /* ═══ Сборка кадров ═══ */
-
-  function emptyGrid() {
-    return Array.from({ length: GRID_H }, () => Array(GRID_W).fill('.'));
-  }
-
-  function stamp(grid, art, x, y) {
-    art.forEach((row, dy) => {
-      for (let dx = 0; dx < row.length; dx++) {
-        const ch = row[dx];
-        if (ch === '.' || ch === ' ') continue;
-        const gx = x + dx, gy = y + dy;
-        if (gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W) grid[gy][gx] = ch;
-      }
-    });
-  }
-
-  const FRAMES = {};
-
-  // Привязка головы к позе: помпон выступает на 2 пикселя влево, верх на 4 вверх.
-  function headAt(art, x, y) {
-    return [art, x - 2, y - 4];
-  }
-
-  function makeFrame(name, parts) {
-    const g = emptyGrid();
-    parts.forEach(([art, x, y]) => {
-      stamp(g, art, x, y + HAT_SPACE);
-    });
-    FRAMES[name] = g.map(r => r.join(''));
-  }
-
-  // Стоит / идёт (мордой вправо)
-  makeFrame('stand', [
-    [TAIL_UP, 0, 6], [BODY_SIDE, 3, 11], [LEGS_STAND, 3, 18], headAt(HEAD_SIDE, 17, 1),
-  ]);
-  makeFrame('walk1', [
-    [TAIL_UP, 0, 6], [BODY_SIDE, 3, 11], [LEGS_WALK_A, 3, 18], headAt(HEAD_SIDE, 17, 1),
-  ]);
-  makeFrame('walk2', [
-    [TAIL_UP2, 0, 6], [BODY_SIDE, 3, 11], [LEGS_WALK_B, 3, 18], headAt(HEAD_SIDE, 17, 1),
-  ]);
-
-  // Сидит
-  makeFrame('sit', [
-    [SIT_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD, 7, 0),
-  ]);
-  makeFrame('sit-blink', [
-    [SIT_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD_CLOSED, 7, 0),
-  ]);
-
-  // Умывается
-  makeFrame('groom1', [
-    [GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD, 7, 0), [PAW_UP, 16, 8],
-  ]);
-  makeFrame('groom2', [
-    [GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD_CLOSED, 7, 0), [PAW_UP, 17, 10],
-  ]);
-
-  // Спит клубком
-  makeFrame('sleep', [
-    [SLEEP_BODY, 2, 12], headAt(HEAD_ASLEEP, 13, 7), [SLEEP_TAIL, 3, 15],
-  ]);
-
-  // Крадётся / готовится к прыжку
-  makeFrame('crouch1', [
-    [TAIL_UP, 0, 9], [BODY_LOW, 3, 16], [LEGS_FOLDED, 3, 21], headAt(HEAD_SIDE, 17, 8),
-  ]);
-  makeFrame('crouch2', [
-    [TAIL_UP2, 0, 9], [BODY_LOW, 3, 16], [LEGS_FOLDED, 3, 21], headAt(HEAD_SIDE, 17, 8),
-  ]);
-
-  // Прыжок
-  makeFrame('pounce', [
-    [TAIL_UP2, 0, 4], [BODY_SIDE, 3, 10], [LEGS_POUNCE, 3, 17], headAt(HEAD_SIDE, 17, 0),
-  ]);
-
-  // Потягивается
-  makeFrame('stretch', [
-    [TAIL_UP, 0, 6], [STRETCH_BODY, 1, 12], headAt(HEAD_SIDE, 16, 9), [FRONT_FLAT, 17, 21],
-  ]);
-
-  // Локальные кадры зимних сцен. Реквизит в лапах движется вместе со спрайтом.
-  const SEATED = [[GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17]];
-  const REACH = ['..OOOOOOO', '.OBBBLLLO', 'OBBBBOOO.', '.OOO.....'];
-  const SNOW = ['..III..', '.IWWWI.', 'IWWWWWI', 'IWWWWWI', '.IIWWI.', '..IIII.'];
-  const SCOOP_POSE = [...SEATED, headAt(HEAD_SIDE, 9, 3), [REACH, 16, 18]];
-  const SCOOP_SNOW = [SNOW, 22, 18];
-  makeFrame('return-gather', SCOOP_POSE);
-  makeFrame('scoop-out', [...SCOOP_POSE, SCOOP_SNOW]);
-  makeFrame('scoop-in', [...SEATED, headAt(HEAD_SIDE, 8, 2), [REACH, 15, 16], [SNOW, 19, 17]]);
-  makeFrame('scoop-lift', [...SEATED, headAt(HEAD, 7, 0), [PAW_UP, 16, 11], [SNOW, 14, 11]]);
-  makeFrame('snow-nose', [...SEATED, headAt(HEAD, 7, 0), [SNOW, 11, 6]]);
-  makeFrame('sneeze', [...SEATED, headAt(HEAD_CLOSED, 9, 3), [REACH, 15, 13]]);
-
-  const WINDUP_PAW = [
-    '.OO......', 'OLLO.....', '.OLLO....', '..OBBO...', '...OBBO..',
-    '....OBBO.', '.....OBBO', '......OOO',
-  ];
-  const SWING_PAW = [
-    '........OOO', '.......OLLO', '......OLLO.', '.....OBBO..',
-    '....OBBO...', '...OBBO....', '..OSBO.....', '.OBBO......', '.OOO.......',
-  ];
-  const THROW_SNOW = [SNOW, 24, 5];
-  const THROW_POSE = [...SEATED, headAt(HEAD_SIDE, 8, 0), [SWING_PAW, 15, 10]];
-  makeFrame('return-windup', [...SEATED, headAt(HEAD_SIDE, 7, 2), [WINDUP_PAW, 9, 10], [SNOW, 5, 5]]);
-  makeFrame('return-aim', [...THROW_POSE, THROW_SNOW]);
-  makeFrame('return-release', THROW_POSE);
-
-  // Нить выходит из-под помпона, свободный конец ложится поперёк поднятой лапы.
-  const THREAD = [
-    '..RR', '.RR.', 'RR..', 'RR..', '.RR.', '..RR', '...RR',
-    '....RR', '.....RR', '......RR', '.......RR', '........RR',
-    '.........RR', '..........RR', '...........RR', '............RR',
-  ];
-  makeFrame('loose-end', [...SEATED, headAt(HEAD, 7, 0), [THREAD.slice(0, 7), 3, 3]]);
-  makeFrame('long-end', [...SEATED, headAt(HEAD, 7, 0), [THREAD, 3, 3]]);
-  makeFrame('catch-yarn', [...SEATED, headAt(HEAD, 7, 0), [THREAD, 3, 3], [PAW_UP, 13, 14]]);
-  makeFrame('hat-down', [...SEATED, headAt(HEAD_HAT_DOWN, 7, 0), [THREAD.slice(0, 12), 4, 6], [PAW_UP, 11, 14]]);
-  makeFrame('hat-lift', [...SEATED, headAt(HEAD_HAT_LIFT, 7, 0), [PAW_UP, 13, 5]]);
-
-  /* ═══ Реквизит ═══ */
-
-  const FLAKE_A = [
-    '....W....', '.I..W..I.', '..W.W.W..', '...WWW...',
-    'IIWWWWWII', '...WWW...', '..W.W.W..', '.I..W..I.', '....W....',
-  ];
-  const FLAKE_B = [
-    '...W...', '.I.W.I.', '..WWW..', 'IIWWWII', '..WWW..', '.I.W.I.', '...W...',
-  ];
-
-  /* ═══ Рендер сетки в SVG ═══ */
-
-  const NS = 'http://www.w3.org/2000/svg';
-
-  function svgFromGrid(rows, scale) {
-    const w = Math.max(...rows.map(r => r.length));
-    const h = rows.length;
-    const svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-    svg.setAttribute('shape-rendering', 'crispEdges');
-    if (scale) {
-      svg.style.width = w * scale + 'px';
-      svg.style.height = h * scale + 'px';
-    }
-    rows.forEach((row, y) => {
-      let x = 0;
-      while (x < row.length) {
-        const ch = row[x];
-        if (ch === '.' || ch === ' ') { x++; continue; }
-        let x2 = x + 1;
-        while (x2 < row.length && row[x2] === ch) x2++;
-        const rect = document.createElementNS(NS, 'rect');
-        rect.setAttribute('x', x);
-        rect.setAttribute('y', y);
-        rect.setAttribute('width', x2 - x);
-        rect.setAttribute('height', 1);
-        rect.setAttribute('fill', PALETTE[ch] || '#f0f');
-        svg.appendChild(rect);
-        x = x2;
-      }
-    });
-    return svg;
-  }
-
-  /* Отладочный лист со всеми кадрами */
-  if (window.CAT_DEBUG) {
-    const sheet = document.createElement('div');
-    sheet.style.cssText = 'display:flex;flex-wrap:wrap;gap:24px;padding:24px;background:#8fa3ad;font-family:monospace;';
-    Object.keys(FRAMES).forEach(name => {
-      const cell = document.createElement('div');
-      cell.style.cssText = 'text-align:center;color:#222;';
-      const svg = svgFromGrid(FRAMES[name], 6);
-      svg.style.background = 'rgba(255,255,255,.25)';
-      cell.appendChild(svg);
-      const label = document.createElement('div');
-      label.textContent = name;
-      cell.appendChild(label);
-      sheet.appendChild(cell);
-    });
-    [['snowflake A', FLAKE_A], ['snowflake B', FLAKE_B]].forEach(([n, art]) => {
-      const cell = document.createElement('div');
-      cell.style.cssText = 'text-align:center;color:#222;';
-      const svg = svgFromGrid(art, 6);
-      svg.style.background = 'rgba(255,255,255,.25)';
-      cell.appendChild(svg);
-      const label = document.createElement('div');
-      label.textContent = n;
-      cell.appendChild(label);
-      sheet.appendChild(cell);
-    });
-    document.body.appendChild(sheet);
-    return;
-  }
 
   /* ═══ DOM ═══ */
 
@@ -537,13 +27,13 @@
   window.addEventListener('resize', fitBadge);
 
   const frameEls = {};
-  Object.keys(FRAMES).forEach(name => {
-    const svg = svgFromGrid(FRAMES[name]);
+  for (const [name, rows] of Object.entries(FRAMES)) {
+    const svg = svgFromGrid(rows);
     svg.classList.add('cat__frame');
     svg.style.display = 'none';
     cat.appendChild(svg);
     frameEls[name] = svg;
-  });
+  }
 
   const flakeEl = document.createElement('div');
   flakeEl.className = 'snowflake';
@@ -559,27 +49,37 @@
 
   /* ═══ Анимационные утилиты ═══ */
 
-  const easings = {
-    linear: t => t,
-    ease: t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
-    easeOut: t => t * (2 - t),
-    easeIn: t => t * t,
-  };
+  function place(el, x, y) {
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+  }
 
-  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  const linear = t => t;
+  const easeIn = t => t * t;
+  const easeOut = t => t * (2 - t);
+  const easeInOut = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
-  function tween(el, to, dur, easing) {
+  function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  function animate(duration, draw) {
     return new Promise(resolve => {
-      const from = {};
-      for (const k in to) from[k] = parseFloat(el.style[k]) || 0;
-      const ease = easings[easing] || easings.linear;
       const start = performance.now();
-      (function tick(now) {
-        const t = Math.min((now - start) / dur, 1);
-        const e = ease(t);
-        for (const k in to) el.style[k] = from[k] + (to[k] - from[k]) * e + 'px';
-        t < 1 ? requestAnimationFrame(tick) : resolve();
-      })(performance.now());
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        draw(t);
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve();
+      }
+      tick(start);
+    });
+  }
+
+  function tween(el, to, duration, ease = linear) {
+    const from = {};
+    for (const key in to) from[key] = parseFloat(el.style[key]) || 0;
+    return animate(duration, t => {
+      const progress = ease(t);
+      for (const key in to) el.style[key] = from[key] + (to[key] - from[key]) * progress + 'px';
     });
   }
 
@@ -589,55 +89,57 @@
 
   function setPos(x, feetY) {
     px = x; pfeet = feetY;
-    cat.style.left = x + 'px';
-    cat.style.top = (feetY - H) + 'px';
+    place(cat, x, feetY - H);
   }
 
   function face(dir) {
     cat.classList.toggle('flip', dir === 'left');
   }
 
-  const STATE_CLASS = { walk: 'walking', run: 'walking', sleep: 'sleeping', groom: 'grooming' };
-
   const STATES = {
-    stand:      { frames: ['stand'] },
-    walk:       { frames: ['walk1', 'walk2'], ms: 170 },
-    run:        { frames: ['walk1', 'walk2'], ms: 95 },
-    sit:        { frames: ['sit', 'sit-blink'], durations: [2300, 140] },
-    groom:      { frames: ['groom1', 'groom2'], ms: 300 },
-    sleep:      { frames: ['sleep'] },
-    crouch:     { frames: ['crouch1', 'crouch2'], ms: 340 },
-    crouchStill:{ frames: ['crouch1'] },
-    wiggle:     { frames: ['crouch1', 'crouch2'], ms: 110 },
-    pounce:     { frames: ['pounce'] },
-    stretch:    { frames: ['stretch'] },
+    stand:       { frames: ['stand'] },
+    walk:        { frames: ['walk1', 'walk2'], ms: 170, motion: 'cat--walking' },
+    run:         { frames: ['walk1', 'walk2'], ms: 95, motion: 'cat--walking' },
+    sit:         { frames: ['sit', 'sit-blink'], durations: [2300, 140] },
+    groom:       { frames: ['groom1', 'groom2'], ms: 300, motion: 'cat--grooming' },
+    sleep:       { frames: ['sleep'], motion: 'cat--sleeping' },
+    crouch:      { frames: ['crouch1', 'crouch2'], ms: 340 },
+    crouchStill: { frames: ['crouch1'] },
+    pounce:      { frames: ['pounce'] },
+    stretch:     { frames: ['stretch'] },
   };
 
-  let frameTimer = null;
-  let shownFrame = null;
+  let frameTimer;
+  let motionClass;
+  let shownFrame;
 
   function showFrame(name) {
-    if (name === shownFrame) return;
-    shownFrame = name;
-    Object.values(frameEls).forEach(el => { el.style.display = 'none'; });
-    frameEls[name].style.display = '';
+    const frame = frameEls[name];
+    if (frame === shownFrame) return;
+    if (shownFrame) shownFrame.style.display = 'none';
+    frame.style.display = '';
+    shownFrame = frame;
+  }
+
+  function stopState() {
+    clearTimeout(frameTimer);
+    if (motionClass) cat.classList.remove(motionClass);
+    motionClass = null;
   }
 
   function setState(name) {
-    const st = STATES[name];
-    clearTimeout(frameTimer);
-    Object.values(STATE_CLASS).forEach(c => cat.classList.remove('cat--' + c));
-    if (STATE_CLASS[name]) cat.classList.add('cat--' + STATE_CLASS[name]);
-    let i = 0;
-    (function step() {
-      const idx = i % st.frames.length;
-      showFrame(st.frames[idx]);
-      if (st.frames.length > 1) {
-        const d = st.durations ? st.durations[idx] : st.ms;
-        i++;
-        frameTimer = setTimeout(step, d);
+    stopState();
+    const state = STATES[name];
+    motionClass = state.motion;
+    if (motionClass) cat.classList.add(motionClass);
+    function step(index) {
+      showFrame(state.frames[index]);
+      if (state.frames.length > 1) {
+        const ms = state.durations ? state.durations[index] : state.ms;
+        frameTimer = setTimeout(step, ms, (index + 1) % state.frames.length);
       }
-    })();
+    }
+    step(0);
   }
 
   // Координаты левого края спрайта на каждой плашке до масштабирования OBS.
@@ -661,7 +163,7 @@
     face(dx < 0 ? 'left' : 'right');
     const speed = state === 'run' ? 0.42 : state === 'crouch' ? 0.09 : 0.14;
     setState(state);
-    await tween(cat, { left: x }, Math.abs(dx) / speed, 'linear');
+    await tween(cat, { left: x }, Math.abs(dx) / speed);
     setPos(x, ROOF);
   }
 
@@ -713,68 +215,41 @@
     requestAnimationFrame(tick);
   }
 
-  function jumpArc(x, height, dur) {
+  function jumpArc(x, height, duration) {
+    const fromX = px;
     const toX = supportedX(x, nearestPerch(x));
-    return new Promise(resolve => {
-      const fromX = px;
-      if (toX !== fromX) face(toX < fromX ? 'left' : 'right');
-      setState('pounce');
-      const start = performance.now();
-      (function tick(now) {
-        const t = Math.min((now - start) / dur, 1);
-        const x = fromX + (toX - fromX) * t;
-        const y = ROOF - height * 4 * t * (1 - t);
-        setPos(x, y);
-        if (t < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          scatterLandingSnow();
-          resolve();
-        }
-      })(performance.now());
+    if (toX !== fromX) face(toX < fromX ? 'left' : 'right');
+    setState('pounce');
+    return animate(duration, t => {
+      setPos(fromX + (toX - fromX) * t, ROOF - height * 4 * t * (1 - t));
+      if (t === 1) scatterLandingSnow();
     });
   }
 
   /* ═══ Снежинка ═══ */
 
-  const flake = { x: 0, y: 0, frame: 0, flap: null };
-
+  let flakeTimer;
   function flakeShow(x, y) {
-    flake.x = x; flake.y = y;
-    flakeEl.style.left = x + 'px';
-    flakeEl.style.top = y + 'px';
+    place(flakeEl, x, y);
     flakeEl.style.display = '';
-    clearInterval(flake.flap);
-    flake.frame = 0;
-    flakeFrames[0].style.display = '';
-    flakeFrames[1].style.display = 'none';
-    flake.flap = setInterval(() => {
-      flake.frame = 1 - flake.frame;
-      flakeFrames[0].style.display = flake.frame ? 'none' : '';
-      flakeFrames[1].style.display = flake.frame ? '' : 'none';
-    }, 120);
+    clearInterval(flakeTimer);
+    let frame = 0;
+    function flap() {
+      flakeFrames[frame].style.display = '';
+      frame = 1 - frame;
+      flakeFrames[frame].style.display = 'none';
+    }
+    flap();
+    flakeTimer = setInterval(flap, 120);
   }
 
-  function flakeHide() {
-    flakeEl.style.display = 'none';
-    clearInterval(flake.flap);
-  }
-
-  // Полёт с лёгкой синусоидой
-  function flakeTo(x, y, dur, wobble) {
-    const amp = wobble === undefined ? 12 : wobble;
-    return new Promise(resolve => {
-      const fx = flake.x, fy = flake.y;
-      const start = performance.now();
-      (function tick(now) {
-        const t = Math.min((now - start) / dur, 1);
-        const e = easings.ease(t);
-        flake.x = fx + (x - fx) * e;
-        flake.y = fy + (y - fy) * e + Math.sin(t * Math.PI * 4) * amp * (1 - t);
-        flakeEl.style.left = flake.x + 'px';
-        flakeEl.style.top = flake.y + 'px';
-        t < 1 ? requestAnimationFrame(tick) : resolve();
-      })(performance.now());
+  function flakeTo(x, y, duration, wobble = 12) {
+    const fromX = parseFloat(flakeEl.style.left);
+    const fromY = parseFloat(flakeEl.style.top);
+    return animate(duration, t => {
+      const progress = easeInOut(t);
+      const offsetY = Math.sin(t * Math.PI * 4) * wobble * (1 - t);
+      place(flakeEl, fromX + (x - fromX) * progress, fromY + (y - fromY) * progress + offsetY);
     });
   }
 
@@ -786,21 +261,6 @@
       y: pfeet - H + (HAT_SPACE + 8.5) * SCALE,
     };
   }
-
-  /* ═══ Лазерная точка ═══ */
-
-  function laserShow(x, y) {
-    laserEl.style.left = x + 'px';
-    laserEl.style.top = y + 'px';
-    laserEl.style.display = '';
-  }
-
-  function laserMove(x, y) {
-    laserEl.style.left = x + 'px';
-    laserEl.style.top = y + 'px';
-  }
-
-  function laserHide() { laserEl.style.display = 'none'; }
 
   /* ═══ Общие ходы ═══ */
 
@@ -821,12 +281,14 @@
     await flakeTo(nose.x - 13, nose.y - 13, 1400, 5);
     await delay(1050);
     await flakeTo(RIGHT + W, -110, 1200);
-    flakeHide();
+    clearInterval(flakeTimer);
+    flakeEl.style.display = 'none';
   }
 
   async function laserChase() {
     await move(280);
-    laserShow(54, ROOF - 12);
+    place(laserEl, 54, ROOF - 12);
+    laserEl.style.display = '';
     setState('sit');
     face('left');
     await delay(700);
@@ -835,7 +297,7 @@
     const frontPaw = 23 * SCALE; // середина стопы в кадре crouch1
     const spotRadius = laserEl.offsetWidth / 2;
     for (const spot of [54, 482, 256]) {
-      laserMove(spot, ROOF - 12);
+      place(laserEl, spot, ROOF - 12);
       const rightward = spot > px + W / 2;
       const landing = spot + spotRadius - (rightward ? frontPaw : W - frontPaw);
       await move(landing + (rightward ? -52 : 52), 'run');
@@ -843,23 +305,22 @@
       setState('crouchStill');
       await delay(460);
     }
-    laserHide();
+    laserEl.style.display = 'none';
     setState('sit');
     await delay(950);
   }
 
-  async function pose(frame, ms) {
-    setState('stand');
+  function pose(frame, ms) {
+    stopState();
     showFrame(frame);
-    await delay(ms);
+    return delay(ms);
   }
 
   function winterProp(art, scale, x, y) {
     const prop = svgFromGrid(art, scale);
     prop.classList.add('winter-prop');
     prop.setAttribute('aria-hidden', 'true');
-    prop.style.left = x + 'px';
-    prop.style.top = y + 'px';
+    place(prop, x, y);
     container.appendChild(prop);
     return prop;
   }
@@ -876,8 +337,8 @@
     const nose = seatedNose();
     const spray = [25, 45, 66].map(async (distance, i) => {
       const bit = winterProp([i === 1 ? 'I' : 'W'], 7, nose.x, nose.y);
-      await tween(bit, { left: nose.x + distance / 2, top: nose.y - 10 - i * 5 }, 145, 'easeOut');
-      await tween(bit, { left: nose.x + distance, top: ROOF - 5 }, 290 + i * 80, 'easeIn');
+      await tween(bit, { left: nose.x + distance / 2, top: nose.y - 10 - i * 5 }, 145, easeOut);
+      await tween(bit, { left: nose.x + distance, top: ROOF - 5 }, 290 + i * 80, easeIn);
       await delay(350);
       bit.remove();
     });
@@ -887,28 +348,20 @@
   }
 
   // Начало координат — левый верхний угол снежка в соответствующем кадре кота.
-  function snowballFlight(ball, catX, stamp, outgoing) {
-    const x = catX + stamp[1] * SCALE;
-    const y = pfeet - H + (HAT_SPACE + stamp[2]) * SCALE;
-    ball.style.left = x + 'px';
-    ball.style.top = y + 'px';
+  function snowballFlight(ball, catX, [, column, row], outgoing) {
+    const x = catX + column * SCALE;
+    const y = pfeet - H + (HAT_SPACE + row) * SCALE;
+    place(ball, x, y);
     const duration = outgoing ? 1220 : 1460;
     const lift = outgoing ? 164 : 130;
-    const start = performance.now();
-    return new Promise(resolve => {
-      function tick(now) {
-        const t = Math.min(1, (now - start) / duration);
-        const edgeFraction = outgoing ? t : 1 - t;
-        // Правый край камеры в координатах бейджа, включая изменение размера OBS в полёте.
-        const bounds = container.getBoundingClientRect();
-        const edgeX = (innerWidth - bounds.left) * CARD_W / bounds.width + 12;
-        const dx = (edgeX - x) * edgeFraction;
-        const dy = 96 * edgeFraction - 4 * lift * t * (1 - t);
-        ball.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
-        if (t < 1) requestAnimationFrame(tick);
-        else resolve();
-      }
-      tick(start);
+    return animate(duration, t => {
+      const edgeFraction = outgoing ? t : 1 - t;
+      // Правый край камеры в координатах бейджа, включая изменение размера OBS в полёте.
+      const bounds = container.getBoundingClientRect();
+      const edgeX = (innerWidth - bounds.left) * CARD_W / bounds.width + 12;
+      const dx = (edgeX - x) * edgeFraction;
+      const dy = 96 * edgeFraction - 4 * lift * t * (1 - t);
+      ball.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
     });
   }
 
@@ -925,7 +378,7 @@
       await delay(790);
       setState('crouchStill');
       cat.style.zIndex = '4'; // Пригибается за снежной кромкой плашки.
-      await tween(cat, { top: ROOF - H + 63 }, 190, 'easeIn');
+      await tween(cat, { top: ROOF - H + 63 }, 190, easeIn);
       await arriving;
       ball.style.transformOrigin = 'center bottom';
       ball.style.transform = 'scale(1.4, .55)';
@@ -935,15 +388,15 @@
       await Promise.all([-24, 13, 37].map(async (distance, i) => {
         const fleck = winterProp(['WI'], 3 + i % 2, impactX, impactY);
         try {
-          await tween(fleck, { left: impactX + distance / 2, top: impactY - 18 - i * 5 }, 120, 'easeOut');
-          await tween(fleck, { left: impactX + distance, top: impactY }, 160, 'easeIn');
+          await tween(fleck, { left: impactX + distance / 2, top: impactY - 18 - i * 5 }, 120, easeOut);
+          await tween(fleck, { left: impactX + distance, top: impactY }, 160, easeIn);
         } finally {
           fleck.remove();
         }
       }));
-      await tween(cat, { top: ROOF - H + 32 }, 230, 'easeOut');
+      await tween(cat, { top: ROOF - H + 32 }, 230, easeOut);
       await delay(420);
-      await tween(cat, { top: ROOF - H }, 230, 'easeOut');
+      await tween(cat, { top: ROOF - H }, 230, easeOut);
       cat.style.removeProperty('z-index');
       await move(gatherX, 'crouch');
       face('right');
@@ -1013,24 +466,23 @@
     'snowball-return': snowballReturn,
   };
   const names = Object.keys(scenarios);
-  // ?scenario=<имя> повторяет выбранную сцену.
-  const forced = names.indexOf(new URLSearchParams(location.search).get('scenario'));
-  let lastIdx = -1;
+  const requested = new URLSearchParams(location.search).get('scenario');
+  const forced = names.includes(requested) ? requested : null;
 
   async function cycle() {
-    let idx;
-    if (forced >= 0) {
-      idx = forced;
-    } else {
-      do { idx = Math.floor(Math.random() * names.length); } while (idx === lastIdx);
+    let previous;
+    while (true) {
+      let name = forced;
+      if (!name) {
+        do { name = names[Math.floor(Math.random() * names.length)]; } while (name === previous);
+      }
+      previous = name;
+      window.__catScenario = name;
+      await scenarios[name]();
+      setState('sit');
+      face(px > CARD_W / 2 ? 'left' : 'right');
+      await delay(forced ? 2000 : 14000 + Math.random() * 8000);
     }
-    lastIdx = idx;
-    window.__catScenario = names[idx];
-    await scenarios[names[idx]]();
-    setState('sit');
-    face(px > CARD_W / 2 ? 'left' : 'right');
-    await delay(forced >= 0 ? 2000 : 14000 + Math.random() * 8000);
-    cycle();
   }
 
   setPos(LEFT, ROOF);

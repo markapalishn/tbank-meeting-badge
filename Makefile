@@ -16,9 +16,8 @@ build: ## Сборка не требуется (статичная страни�
 run: ## Запустить локальный сервер и открыть бейдж
 	npx serve -l $(PORT) --no-clipboard
 
-test: ## Проверить синтаксис анимаций
-	node --check cat.js
-	node --check frost-corner.js
+test: ## Проверить синтаксис скриптов бейджа
+	@for script in ./*.js; do node --check "$$script" || exit 1; done
 
 deploy: test ## Опубликовать ветку main на GitHub Pages
 	git push $(PAGES_REMOTE) $(PAGES_BRANCH):$(PAGES_BRANCH)

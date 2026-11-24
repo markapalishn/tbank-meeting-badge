@@ -54,10 +54,17 @@ body {
 }
 
 .employee-card {
+    position: relative;
+    z-index: 5;
     width: var(--card-width);
     display: flex;
     flex-direction: column;
     gap: 30px;
+    font-family: 'SF Pro', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    line-height: normal;
+    color: var(--text-dark);
 }
 
 .employee-card__top {
@@ -67,12 +74,16 @@ body {
     height: 172px;
 }
 
-.employee-card__logo {
-    width: 172px;
+.employee-card__logo,
+.employee-card__name-block {
     height: 172px;
     border-radius: 52.92px;
-    overflow: hidden;
     flex-shrink: 0;
+}
+
+.employee-card__logo {
+    width: 172px;
+    overflow: hidden;
 }
 
 .employee-card__logo img {
@@ -83,13 +94,10 @@ body {
 
 .employee-card__name-block {
     width: 488px;
-    height: 172px;
     background: var(--name-bg);
-    border-radius: 52.92px;
     padding: 24px 28px;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
 }
 
 .employee-card__role {
@@ -97,6 +105,8 @@ body {
     align-items: center;
     gap: 8px;
     height: 46px;
+    font-size: 32px;
+    text-align: center;
 }
 
 .employee-card__role-icon {
@@ -106,36 +116,18 @@ body {
     display: block;
 }
 
-.employee-card__role-slash,
-.employee-card__role-text {
-    color: #333;
-    text-align: center;
-    font-family: 'SF Pro', sans-serif;
-    font-size: 32px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
-}
-
 .employee-card__full-name {
     margin-top: 4px;
-    color: #333;
     text-align: center;
     font-family: 'T-Sans', sans-serif;
     font-size: 60px;
-    font-style: normal;
     font-weight: 500;
-    line-height: normal;
     white-space: nowrap;
 }
 
 .employee-card__areas {
     color: var(--areas-color);
-    font-family: 'SF Pro', sans-serif;
     font-size: 40px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
 }
 
 /* ═══ Кот ═══ */
@@ -158,11 +150,6 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-}
-
-.employee-card {
-    position: relative;
-    z-index: 5;
 }
 
 /* Подпрыгивание при ходьбе */

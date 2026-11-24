@@ -3,9 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Кадры кота — отладка</title>
+    <style>
+        body { margin: 0; }
+        #sheet { display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; background: #8fa3ad; font-family: monospace; }
+        #sheet > div { text-align: center; color: #222; }
+        .frame svg { background: rgba(255, 255, 255, .25); }
+    </style>
 </head>
-<body style="margin:0">
-    <script>window.CAT_DEBUG = true;</script>
-    <script src="cat.js"></script>
+<body>
+    <div id="sheet"></div>
+    <script src="cat-sprites.js?v=winter-scenes-2"></script>
+    <script>
+        const sheet = document.getElementById('sheet');
+        function addSprite(name, grid, frame = false) {
+            const cell = document.createElement('div');
+            if (frame) cell.className = 'frame';
+            const label = document.createElement('div');
+            label.textContent = name;
+            cell.append(catSprites.svgFromGrid(grid, 6), label);
+            sheet.append(cell);
+        }
+        for (const [name, grid] of Object.entries(catSprites.FRAMES)) addSprite(name, grid, true);
+        addSprite('snowflake A', catSprites.FLAKE_A);
+        addSprite('snowflake B', catSprites.FLAKE_B);
+    </script>
 </body>
 </html>

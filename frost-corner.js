@@ -5,20 +5,27 @@
   const WIDTH = 350;
   const HEIGHT = 205;
 
-  // Карта стекла хранит прозрачность наледи отдельно от времени появления каждой крупинки.
-  function makeRimeTexture(width, height) {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
+  function clamp01(value) {
+    return Math.min(1, Math.max(0, value));
+  }
+
+  function smoothstep(value) {
+    const t = clamp01(value);
+    return t * t * (3 - 2 * t);
+  }
+
+  // Рисуем неподвижную наледь и запоминаем время появления каждой крупинки.
+  function paintRimeTexture(ctx) {
+    const { width, height } = ctx.canvas;
     const image = ctx.createImageData(width, height);
     const pixels = image.data;
     const arrival = new Uint8Array(width * height).fill(255);
     const dx = WIDTH / width, dy = HEIGHT / height;
-    const clamp = value => Math.min(1, Math.max(0, value));
-    const smooth = value => { const n = clamp(value); return n * n * (3 - 2 * n); };
     let seed = 152843;
-    const random = () => { seed = (Math.imul(1664525, seed) + 1013904223) >>> 0; return seed / 4294967296; };
+    function random() {
+      seed = (Math.imul(1664525, seed) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    }
 
     // Поля в координатах стекла сохраняют форму кромки и пор при изменении DPR.
     function noise(step) {
@@ -27,7 +34,7 @@
       return (x, y) => {
         const u = x / step, v = y / step, ix = Math.floor(u), iy = Math.floor(v);
         const fx = u - ix, fy = v - iy, i = iy * columns + ix;
-        const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+        const sx = smoothstep(fx), sy = smoothstep(fy);
         const a = grid[i] + sx * (grid[i + 1] - grid[i]);
         const b = grid[i + columns] + sx * (grid[i + columns + 1] - grid[i + columns]);
         return a + sy * (b - a);
@@ -48,11 +55,13 @@
       const x1 = Math.min(width, Math.ceil((cx + marginX) / dx));
       const y0 = Math.max(0, Math.floor((cy - marginY) / dy));
       const y1 = Math.min(height, Math.ceil((cy + marginY) / dy));
+      const poreRadius = Math.min(rx, ry);
       for (let j = y0; j < y1; j++) {
         const yy = (j + 0.5) * dy - cy;
+        const ySquared = (yy / ry) ** 2;
         for (let i = x0; i < x1; i++) {
           const xx = ((i + 0.5) * dx - cx - yy * lean) / rx;
-          const depth = (1 - xx * xx - (yy / ry) ** 2) * Math.min(rx, ry);
+          const depth = (1 - xx * xx - ySquared) * poreRadius;
           const offset = j * width + i;
           clearance[offset] = Math.max(clearance[offset], depth);
         }
@@ -80,20 +89,20 @@
         reliefLeft = relief; reliefAbove[i] = relief;
         const breakage = (low - 0.5) * 28 + (mid - 0.5) * 16 + (chip - 0.5) * 7;
         const front = depth + breakage;
-        const mist = smooth((front + 22) / 37);
-        const crust = smooth((front + 2 + (chip - 0.5) * 16 + (grain - 0.5) * 8) / 25);
-        const softGlass = smooth((mid * 0.6 + low * 0.4 - 0.52) / 0.28);
+        const mist = smoothstep((front + 22) / 37);
+        const crust = smoothstep((front + 2 + (chip - 0.5) * 16 + (grain - 0.5) * 8) / 25);
+        const softGlass = smoothstep((mid * 0.6 + low * 0.4 - 0.52) / 0.28);
         const voidDepth = clearance[k] + (mid - 0.5) * 13 + (chip - 0.5) * 8.7 + (grain - 0.5) * 2.8;
-        const compact = clamp(0.28 + depth / 64);
-        const packedRim = crust * (1 - smooth(Math.min(y, WIDTH - x) / 22));
+        const compact = clamp01(0.28 + depth / 64);
+        const packedRim = crust * (1 - smoothstep(Math.min(y, WIDTH - x) / 22));
         const crystal = crust * (0.24 + 0.32 * compact + 0.23 * grain + 0.14 * chip);
-        const granules = mist * (1 - crust) * smooth((0.4 * chip + 0.6 * grain - 0.5) / 0.36);
-        const edgeFade = smooth((x - 5) / 30) * smooth((HEIGHT - 5 - y) / 29);
-        const opacity = clamp(mist * 0.13 + crystal + granules * 0.40 + packedRim * 0.08) * (1 - 0.62 * softGlass) *
-          (1 - smooth((voidDepth + 2.8) / 4.5)) * edgeFade;
+        const granules = mist * (1 - crust) * smoothstep((0.4 * chip + 0.6 * grain - 0.5) / 0.36);
+        const edgeFade = smoothstep((x - 5) / 30) * smoothstep((HEIGHT - 5 - y) / 29);
+        const opacity = clamp01(mist * 0.13 + crystal + granules * 0.40 + packedRim * 0.08) * (1 - 0.62 * softGlass) *
+          (1 - smoothstep((voidDepth + 2.8) / 4.5)) * edgeFade;
         const fromTop = y / Math.max(12, lip[i] + 19) + 0.28 * (1 - x / WIDTH);
         const fromSide = (WIDTH - x) / Math.max(12, side + 19) + 0.30 * (y / HEIGHT);
-        arrival[k] = 255 * clamp(Math.min(fromTop, fromSide) * 0.89 +
+        arrival[k] = 255 * clamp01(Math.min(fromTop, fromSide) * 0.89 +
           (mid - 0.5) * 0.09 + (chip - 0.5) * 0.04 + (grain - 0.5) * 0.018);
         if (opacity <= 0.002) continue;
         const shade = 186 + 23 * compact + 26 * chip + 20 * grain - 14 * softGlass + 5 * packedRim + (31 - 9 * packedRim) * slope;
@@ -119,7 +128,7 @@
       ctx.lineTo(x + 0.2 * r, y + 0.72 * r); ctx.closePath();
       ctx.fillStyle = 'rgba(83,111,124,' + (0.08 + random() * 0.29) + ')'; ctx.fill();
     }
-    return { canvas, arrival };
+    return arrival;
   }
 
   const GROW_END = 5700;
@@ -129,34 +138,35 @@
   const FADE_START = 14000;
   const END = 15800;
 
-  function ease(value) {
-    const t = Math.max(0, Math.min(1, value));
-    return t * t * (3 - 2 * t);
-  }
-
   // Фактура неподвижна. Карта роста задаёт момент появления каждой крупинки.
   let surface;
   function getSurface(width, height) {
     if (surface && surface.canvas.width === width && surface.canvas.height === height) return surface;
-    const { canvas, arrival } = makeRimeTexture(width, height);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext('2d');
-    const pixels = ctx.getImageData(0, 0, width, height);
-    const alpha = new Uint8Array(arrival.length);
-    for (let i = 0; i < alpha.length; i++) alpha[i] = pixels.data[4 * i + 3];
-    surface = { canvas, ctx, arrival, pixels, alpha, level: -1 };
+    const arrival = paintRimeTexture(ctx);
+    // Сохраняем итоговую альфу вместе с гранями, которые Canvas наложил поверх дымки.
+    const frame = ctx.getImageData(0, 0, width, height);
+    const baseAlpha = new Uint8Array(arrival.length);
+    for (let i = 0; i < baseAlpha.length; i++) baseAlpha[i] = frame.data[4 * i + 3];
+    surface = { canvas, ctx, arrival, frame, baseAlpha, level: -1 };
     return surface;
   }
 
+  const coverage = new Float32Array(256);
   function growRime(ice, progress) {
     const softness = 48;
     const level = Math.round(progress * (255 + softness));
     if (ice.level === level) return;
     ice.level = level;
-    const coverage = new Float32Array(256);
-    for (let i = 0; i < coverage.length; i++) coverage[i] = ease((level - i) / softness);
-    const data = ice.pixels.data;
-    for (let i = 0; i < ice.alpha.length; i++) data[4 * i + 3] = ice.alpha[i] * coverage[ice.arrival[i]];
-    ice.ctx.putImageData(ice.pixels, 0, 0);
+    for (let i = 0; i < coverage.length; i++) coverage[i] = smoothstep((level - i) / softness);
+    const data = ice.frame.data;
+    for (let i = 0; i < ice.baseAlpha.length; i++) {
+      data[4 * i + 3] = ice.baseAlpha[i] * coverage[ice.arrival[i]];
+    }
+    ice.ctx.putImageData(ice.frame, 0, 0);
   }
 
   // Капля немного отклоняется в сторону, когда набирает воду.
@@ -285,14 +295,14 @@
           ctx.clearRect(0, 0, WIDTH, HEIGHT);
           ctx.drawImage(ice.canvas, 0, 0, WIDTH, HEIGHT);
           if (time > THAW_START) {
-            const thaw = ease((time - THAW_START) / (SLIDE_START - THAW_START));
+            const thaw = smoothstep((time - THAW_START) / (SLIDE_START - THAW_START));
             const t = (time - SLIDE_START) / (SLIDE_END - SLIDE_START);
-            const slide = 0.4 * ease(t / 0.53) + 0.6 * ease((t - 0.46) / 0.54);
+            const slide = 0.4 * smoothstep(t / 0.53) + 0.6 * smoothstep((t - 0.46) / 0.54);
             clearMelt(ctx, thaw, slide);
-            const water = ease((time - THAW_START - 280) / 1100);
+            const water = smoothstep((time - THAW_START - 280) / 1100);
             if (water > 0) drawDrop(ctx, water, slide);
           }
-          canvas.style.opacity = 1 - ease((time - FADE_START) / (END - FADE_START));
+          canvas.style.opacity = 1 - smoothstep((time - FADE_START) / (END - FADE_START));
         }
         requestAnimationFrame(tick);
       }

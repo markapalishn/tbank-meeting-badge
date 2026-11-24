@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "badge",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "8080", "--no-clipboard"],
+      "runtimeExecutable": "make",
+      "runtimeArgs": ["run", "PORT=8080"],
       "port": 8080
     }
   ]
