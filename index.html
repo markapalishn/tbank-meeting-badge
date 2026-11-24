@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Т-Банк Meeting Badge</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=winter-paws">
 </head>
 <body>
     <div class="badge-container">
@@ -24,9 +24,28 @@
                     <div class="employee-card__full-name">Марк Апалишин</div>
                 </div>
             </div>
+            <svg class="badge-snow" viewBox="0 0 690 48" aria-hidden="true">
+                <defs>
+                    <linearGradient id="frost" x2="0" y2="1">
+                        <stop stop-color="#fff"/>
+                        <stop offset=".58" stop-color="#f7fcff"/>
+                        <stop offset="1" stop-color="#bdd8e3"/>
+                    </linearGradient>
+                    <path id="paw" d="M0 3h2V1h3v1h2v4H5v1H2V6H0z M6 0h2v2H6z M9 2h2v2H9z M9 5h2v2H9z"/>
+                    <clipPath id="snow-outline">
+                        <use href="#logo-snow"/>
+                        <use href="#name-snow"/>
+                    </clipPath>
+                </defs>
+                <g fill="url(#frost)">
+                    <path id="logo-snow" d="M9 44 Q20 17 48 15 Q63 7 81 12 Q94 14 106 10 Q141 7 160 34 Q149 29 140 30 Q130 32 121 24 Q108 18 91 23 Q75 28 64 23 Q45 19 34 29 Q28 37 24 33 Q18 31 9 44Z"/>
+                    <path id="name-snow" d="M211 43 Q221 18 247 16 Q269 5 298 11 Q316 15 335 12 Q365 6 391 13 Q410 17 432 12 Q457 4 478 10 Q496 16 519 11 Q549 4 578 11 Q594 15 616 10 Q657 5 680 35 Q668 28 656 29 Q643 30 632 23 Q613 18 595 23 Q574 27 551 21 Q532 17 516 23 Q501 29 481 22 Q462 16 440 22 Q417 28 394 22 Q369 17 348 22 Q326 27 305 22 Q286 18 270 24 Q257 30 246 27 Q228 23 211 43Z"/>
+                </g>
+                <g class="paw-trail" clip-path="url(#snow-outline)"></g>
+            </svg>
             <p class="employee-card__areas">Интернет эквайринг, интерфейсные методы интеграции</p>
         </div>
     </div>
-    <script src="cat.js"></script>
+    <script src="cat.js?v=winter-paws"></script>
 </body>
 </html>

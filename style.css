@@ -3,8 +3,6 @@
     --text-dark: #333333;
     --areas-color: #EFEBE5;
     --card-width: 690px;
-    --card-height: 298px;
-    --screen-padding: 60px;
 }
 
 @font-face {
@@ -31,22 +29,38 @@
 
 html,
 body {
-    width: calc(var(--card-width) + var(--screen-padding) * 2);
-    height: calc(var(--card-height) + var(--screen-padding) * 2);
+    width: 100%;
+    height: 100%;
     background: transparent;
     overflow: hidden;
 }
 
-body {
-    padding: var(--screen-padding);
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
+.badge-container {
+    position: absolute;
+    left: 15.8%;
+    top: 18.2%;
+    width: var(--card-width);
+    transform: scale(var(--badge-scale));
+    transform-origin: top left;
 }
 
-.badge-container {
-    position: relative;
-    width: var(--card-width);
+.badge-snow {
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 48px;
+    pointer-events: none;
+}
+
+.paw-trail use {
+    fill: #627e91;
+    animation: snow-fill-in 2.4s linear forwards;
+}
+
+@keyframes snow-fill-in {
+    0%, 28% { opacity: .78; }
+    100% { opacity: 0; }
 }
 
 .employee-card {
@@ -139,7 +153,7 @@ body {
 .cat {
     position: absolute;
     width: 128px;
-    height: 96px;
+    height: 116px;
     filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.2));
     z-index: 10;
 }
@@ -246,7 +260,7 @@ body {
 
 /* ═══ Реквизит ═══ */
 
-.butterfly {
+.snowflake {
     position: absolute;
     z-index: 12;
     filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.25));

@@ -1,6 +1,6 @@
 /* Пиксельный кот-тамагочи для бейджа.
    Спрайты собираются из «деталей» (голова, тело, лапы, хвост) на сетке
-   32×24, каждый символ — один пиксель. Точка — прозрачность. */
+   32×29, каждый символ — один пиксель. Точка — прозрачность. */
 (function () {
   'use strict';
 
@@ -10,13 +10,14 @@
   const CARD_W = parseInt(css.getPropertyValue('--card-width')) || 690;
 
   const SCALE = 4;
-  const GRID_W = 32, GRID_H = 24;
+  const HAT_SPACE = 5;
+  const GRID_W = 32, GRID_H = 24 + HAT_SPACE;
   const W = GRID_W * SCALE;   // 128
-  const H = GRID_H * SCALE;   // 96
+  const H = GRID_H * SCALE;   // 116
 
-  const FLOOR = 176;          // линия ног: перед нижним краем верхнего ряда
-  const FLOOR2 = 352;         // линия ног: свободная зона ниже карточки, правее текста
-  const ROOF = 10;            // линия ног: на верхней кромке плашки с именем
+  const ROOF = -4;
+  const LEFT = 26;
+  const RIGHT = CARD_W - W - 24;
 
   /* ═══ Палитра ═══ */
 
@@ -28,6 +29,8 @@
     P: '#ef9f9c', // уши, нос
     E: '#241811', // глаза
     W: '#ffffff', // блик
+    I: '#bee3ed', // ледяная тень
+    C: '#a32338', // тень на колпаке
     R: '#d9534a', // кружка, сердечко
     Y: '#ffdd2d', // бабочка, эмоции
   };
@@ -55,6 +58,16 @@
     if (i === 6) return 'OBBEEBBBEEBBO';
     return row;
   });
+
+  const HAT = [
+    '....CCCCCC....',
+    '..CCRRRRRRC...',
+    '.CRRRRRRRRRC..',
+    'WWWRRCRRRRRRC.',
+    'WIWCCCRRRRRRRC',
+    '.I..WWWWWWWWWW',
+    '....IIIIIIIIII',
+  ];
 
   const BODY_SIDE = [
     '...OOOOOOOOOOOOBBBB..',
@@ -239,7 +252,10 @@
 
   function makeFrame(name, parts) {
     const g = emptyGrid();
-    parts.forEach(([art, x, y]) => stamp(g, art, x, y));
+    parts.forEach(([art, x, y]) => {
+      stamp(g, art, x, y + HAT_SPACE);
+      if (art === HEAD || art === HEAD_CLOSED) stamp(g, HAT, x - 1, y);
+    });
     FRAMES[name] = g.map(r => r.join(''));
   }
 
@@ -295,19 +311,12 @@
 
   /* ═══ Реквизит ═══ */
 
-  const BUTTERFLY_A = [
-    'YYY...YYY',
-    'YYYY.YYYY',
-    '.YYYOYYY.',
-    '.YYYOYYY.',
-    '..YYOYY..',
+  const FLAKE_A = [
+    '....W....', '.I..W..I.', '..W.W.W..', '...WWW...',
+    'IIWWWWWII', '...WWW...', '..W.W.W..', '.I..W..I.', '....W....',
   ];
-  const BUTTERFLY_B = [
-    '...Y.Y...',
-    '..YY.YY..',
-    '..YYOYY..',
-    '...YOY...',
-    '....O....',
+  const FLAKE_B = [
+    '...W...', '.I.W.I.', '..WWW..', 'IIWWWII', '..WWW..', '.I.W.I.', '...W...',
   ];
 
   const MUG = [
@@ -375,7 +384,7 @@
       cell.appendChild(label);
       sheet.appendChild(cell);
     });
-    [['butterfly A', BUTTERFLY_A], ['butterfly B', BUTTERFLY_B], ['mug', MUG],
+    [['snowflake A', FLAKE_A], ['snowflake B', FLAKE_B], ['mug', MUG],
      ['!', EM_EXCLAIM], ['?', EM_QUESTION], ['heart', EM_HEART], ['z', EM_Z]].forEach(([n, art]) => {
       const cell = document.createElement('div');
       cell.style.cssText = 'text-align:center;color:#222;';
@@ -396,6 +405,14 @@
   const container = document.querySelector('.badge-container');
   const cat = document.querySelector('.cat');
 
+  // На референсе ширина карточки — 446 px в пересчёте на кадр 1920×1080.
+  function fitBadge() {
+    const scale = Math.min(innerWidth / 1920, innerHeight / 1080) * 446 / CARD_W;
+    container.style.setProperty('--badge-scale', scale);
+  }
+  fitBadge();
+  window.addEventListener('resize', fitBadge);
+
   const frameEls = {};
   Object.keys(FRAMES).forEach(name => {
     const svg = svgFromGrid(FRAMES[name]);
@@ -409,12 +426,12 @@
   emoteEl.className = 'cat__emote';
   cat.appendChild(emoteEl);
 
-  const bflyEl = document.createElement('div');
-  bflyEl.className = 'butterfly';
-  const bflyFrames = [svgFromGrid(BUTTERFLY_A, 3), svgFromGrid(BUTTERFLY_B, 3)];
-  bflyFrames.forEach(s => bflyEl.appendChild(s));
-  bflyEl.style.display = 'none';
-  container.appendChild(bflyEl);
+  const flakeEl = document.createElement('div');
+  flakeEl.className = 'snowflake';
+  const flakeFrames = [svgFromGrid(FLAKE_A, 3), svgFromGrid(FLAKE_B, 3)];
+  flakeFrames.forEach(s => flakeEl.appendChild(s));
+  flakeEl.style.display = 'none';
+  container.appendChild(flakeEl);
 
   const laserEl = document.createElement('div');
   laserEl.className = 'laser';
@@ -455,7 +472,7 @@
 
   /* ═══ Кот: состояние и движение ═══ */
 
-  let px = -W - 20, pfeet = FLOOR;
+  let px = LEFT, pfeet = ROOF;
 
   function setPos(x, feetY) {
     px = x; pfeet = feetY;
@@ -483,6 +500,21 @@
     stretch:    { frames: ['stretch'] },
   };
 
+  const pawTrail = document.querySelector('.paw-trail');
+
+  function leavePawPrint(step) {
+    const leftward = cat.classList.contains('flip');
+    // Задняя лапа в локальных координатах спрайта, отражённых при развороте.
+    const foot = step % 2 ? 22 : 34;
+    const x = parseFloat(cat.style.left) + (leftward ? W - foot : foot);
+    const print = document.createElementNS(NS, 'use');
+    print.setAttribute('href', '#paw');
+    print.setAttribute('transform', 'translate(' + x + ' ' + (step % 2 ? 14 : 17) +
+      ') scale(' + (leftward ? -1 : 1) + ' 1)');
+    print.addEventListener('animationend', () => print.remove(), { once: true });
+    pawTrail.appendChild(print);
+  }
+
   let frameTimer = null;
   let shownFrame = null;
 
@@ -502,6 +534,9 @@
     (function step() {
       const idx = i % st.frames.length;
       showFrame(st.frames[idx]);
+      if (i > 0 && (name === 'walk' || name === 'run' || name === 'crouch')) {
+        leavePawPrint(i);
+      }
       if (st.frames.length > 1) {
         const d = st.durations ? st.durations[idx] : st.ms;
         i++;
@@ -515,24 +550,27 @@
     const dx = x - px;
     if (Math.abs(dx) > 2) face(dx < 0 ? 'left' : 'right');
     const dist = Math.max(Math.abs(dx), Math.abs(feetY - pfeet));
-    const speed = state === 'run' ? 0.42 : state === 'crouch' ? 0.045 : 0.14; // px за мс
+    if (dist < 1) {
+      setState('stand');
+      return;
+    }
+    const speed = state === 'run' ? 0.42 : state === 'crouch' ? 0.09 : 0.14; // px за мс
     setState(state || 'walk');
     await tween(cat, { left: x, top: feetY - H }, dist / speed, 'linear');
-    px = x; pfeet = feetY;
+    setPos(x, feetY);
+    setState('stand');
   }
 
-  // Прыжок по дуге. Возле верхней кромки экрана кот группируется
-  // (кадр «crouch1»), чтобы вытянутая голова не уходила за край.
   function jumpArc(toX, toFeetY, height, dur) {
     return new Promise(resolve => {
       const fromX = px, fromY = pfeet;
+      if (toX !== fromX) face(toX < fromX ? 'left' : 'right');
       setState('pounce');
       const start = performance.now();
       (function tick(now) {
         const t = Math.min((now - start) / dur, 1);
         const x = fromX + (toX - fromX) * t;
         const y = fromY + (toFeetY - fromY) * t - height * 4 * t * (1 - t);
-        showFrame(y > 45 ? 'pounce' : 'crouch1');
         cat.style.left = x + 'px';
         cat.style.top = (y - H) + 'px';
         if (t < 1) requestAnimationFrame(tick);
@@ -567,50 +605,56 @@
     emoteEl.className = 'cat__emote';
   }
 
-  /* ═══ Бабочка ═══ */
+  /* ═══ Снежинка ═══ */
 
-  const bfly = { x: 0, y: 0, frame: 0, flap: null };
+  const flake = { x: 0, y: 0, frame: 0, flap: null };
 
-  function bflyShow(x, y) {
-    bfly.x = x; bfly.y = y;
-    bflyEl.style.left = x + 'px';
-    bflyEl.style.top = y + 'px';
-    bflyEl.style.display = '';
-    clearInterval(bfly.flap);
-    bfly.flap = setInterval(() => {
-      bfly.frame = 1 - bfly.frame;
-      bflyFrames[0].style.display = bfly.frame ? 'none' : '';
-      bflyFrames[1].style.display = bfly.frame ? '' : 'none';
+  function flakeShow(x, y) {
+    flake.x = x; flake.y = y;
+    flakeEl.style.left = x + 'px';
+    flakeEl.style.top = y + 'px';
+    flakeEl.style.display = '';
+    clearInterval(flake.flap);
+    flake.frame = 0;
+    flakeFrames[0].style.display = '';
+    flakeFrames[1].style.display = 'none';
+    flake.flap = setInterval(() => {
+      flake.frame = 1 - flake.frame;
+      flakeFrames[0].style.display = flake.frame ? 'none' : '';
+      flakeFrames[1].style.display = flake.frame ? '' : 'none';
     }, 120);
   }
 
-  function bflyHide() {
-    bflyEl.style.display = 'none';
-    clearInterval(bfly.flap);
+  function flakeHide() {
+    flakeEl.style.display = 'none';
+    clearInterval(flake.flap);
   }
 
   // Полёт с лёгкой синусоидой
-  function bflyTo(x, y, dur, wobble) {
+  function flakeTo(x, y, dur, wobble) {
     const amp = wobble === undefined ? 12 : wobble;
     return new Promise(resolve => {
-      const fx = bfly.x, fy = bfly.y;
+      const fx = flake.x, fy = flake.y;
       const start = performance.now();
       (function tick(now) {
         const t = Math.min((now - start) / dur, 1);
         const e = easings.ease(t);
-        bfly.x = fx + (x - fx) * e;
-        bfly.y = fy + (y - fy) * e + Math.sin(t * Math.PI * 4) * amp * (1 - t);
-        bflyEl.style.left = bfly.x + 'px';
-        bflyEl.style.top = bfly.y + 'px';
+        flake.x = fx + (x - fx) * e;
+        flake.y = fy + (y - fy) * e + Math.sin(t * Math.PI * 4) * amp * (1 - t);
+        flakeEl.style.left = flake.x + 'px';
+        flakeEl.style.top = flake.y + 'px';
         t < 1 ? requestAnimationFrame(tick) : resolve();
       })(performance.now());
     });
   }
 
-  // Точка носа — чтобы бабочка могла сесть на нос
-  function nosePoint() {
-    const flipped = cat.classList.contains('flip');
-    return { x: flipped ? px + W - 96 : px + 88, y: pfeet - H + 28 };
+  // В сидячей позе голова начинается в четвёртом столбце спрайта.
+  function seatedNose() {
+    const offset = 10.5 * SCALE;
+    return {
+      x: px + (cat.classList.contains('flip') ? W - offset : offset),
+      y: pfeet - H + (HAT_SPACE + 7.5) * SCALE,
+    };
   }
 
   /* ═══ Лазерная точка ═══ */
@@ -652,7 +696,7 @@
     const left = parseFloat(mugEl.style.left);
     mugEl.style.transition = 'left .55s cubic-bezier(.4,0,1,1), top .55s cubic-bezier(.4,0,1,1), transform .55s linear';
     mugEl.style.left = left + 36 + 'px';
-    mugEl.style.top = FLOOR - 26 + 'px';
+    mugEl.style.top = '106px';
     mugEl.style.transform = 'rotate(-104deg)';
     await delay(600);
   }
@@ -666,191 +710,83 @@
 
   /* ═══ Общие ходы ═══ */
 
-  async function walkIn(fromLeft, toX, feetY, state) {
-    const y = feetY || FLOOR;
-    setPos(fromLeft ? -W - 10 : CARD_W + 10, y);
-    await move(toX, y, state || 'walk');
-  }
-
-  async function leave(toRight, state) {
-    await move(toRight ? CARD_W + W : -W - 20, pfeet, state || 'walk');
-  }
-
-  async function lookAround() {
-    face('left');
-    await delay(750);
-    face('right');
-    await delay(750);
-  }
-
-  /* ═══ Сценарий: охота на бабочку ═══ */
-
-  async function butterflyHunt() {
-    bflyShow(CARD_W + 30, 160);
-    const flight = bflyTo(460, 306, 2600);
-
-    await walkIn(true, 150);
+  async function snowflakeHunt() {
+    await move(100, ROOF);
+    flakeShow(440, -130);
+    setState('sit');
+    await flakeTo(350, -85, 1800);
+    await emote('!', 650);
+    await move(195, ROOF, 'crouch');
+    const flight = flakeTo(480, -145, 850);
+    await jumpArc(282, ROOF, 43, 620);
+    setState('sit');
     await flight;
+    await emote('?', 700);
 
-    // Заметил
-    setState('stand');
-    await emote('!', 1200);
-
-    // Крадётся и виляет хвостом
-    await move(280, FLOOR, 'crouch');
-    setState('wiggle');
-    await delay(1700);
-
-    // Прыжок — бабочка ускользает
-    const dart = (async () => { await delay(120); await bflyTo(560, 140, 700, 4); })();
-    await jumpArc(400, FLOOR2, 46, 620);
-    await dart;
-
-    // Растерялся
-    setState('sit');
-    await emote('?', 1500);
-    await lookAround();
-
-    // Бабочка садится на нос
-    const nose = nosePoint();
-    await bflyTo(nose.x - 12, nose.y - 18, 1400, 6);
-    setState('sit');
-    await delay(3200);
-
-    // Улетает — кот пытается её поймать и убегает следом
-    const away = bflyTo(CARD_W + 40, 120, 1600, 6);
-    await delay(250);
-    await jumpArc(px + 46, FLOOR2, 34, 320);
-    await leave(true, 'run');
-    bflyHide();
+    const nose = seatedNose();
+    await flakeTo(nose.x - 13, nose.y - 13, 1400, 5);
+    await delay(1050);
+    await flakeTo(RIGHT + W, -110, 1200);
+    flakeHide();
   }
-
-  /* ═══ Сценарий: лазерная точка ═══ */
 
   async function laserChase() {
-    await walkIn(false, 400, FLOOR2);
+    await move(280, ROOF);
+    laserShow(94, ROOF - 12);
     setState('sit');
-    await delay(2000);
-    setState('groom');
-    await delay(4200);
+    face('left');
+    await emote('!', 700);
 
-    // Точка!
-    laserShow(90, 116);
-    setState('stand');
-    await emote('!', 1100);
-
-    const spots = [
-      { x: 90, y: 116 },
-      { x: 500, y: 70 },
-      { x: 260, y: 162 },
-    ];
-    for (const s of spots) {
-      laserMove(s.x, s.y);
-      const target = Math.min(Math.max(s.x - 92, -14), CARD_W - W + 14);
-      await move(target, FLOOR, 'run');
-      await jumpArc(target + 18, FLOOR, 24, 300);
+    // Лапы и точка встречаются с учётом направления прыжка.
+    for (const spot of [94, 482, 256]) {
+      laserMove(spot, ROOF - 12);
+      const rightward = spot > px + W / 2;
+      const landing = spot - (rightward ? W - 28 : 28);
+      await move(landing + (rightward ? -52 : 52), ROOF, 'run');
+      await jumpArc(landing, ROOF, 25, 310);
       setState('crouchStill');
-      await delay(700);
+      await delay(460);
     }
-
-    // Накрыл лапами — а точки нет
     laserHide();
-    await delay(1400);
     setState('sit');
-    await emote('?', 1500);
-    await lookAround();
-
-    // Точка появляется у него на спине — но он уже не видит
-    laserShow(px + 34, pfeet - H + 44);
-    await delay(1800);
-    laserHide();
-    await delay(700);
-    await leave(false);
+    await emote('?', 950);
   }
 
-  /* ═══ Сценарий: кружка с полки ═══ */
-
   async function mugHeist() {
-    // Кружка стоит на правом краю плашки с именем
-    mugShow(600, -21);
-    await delay(300);
-
-    await walkIn(true, 430);
+    mugShow(CARD_W - 50, ROOF - 24);
+    await move(340, ROOF);
     setState('sit');
-    await delay(1500);
-    await emote('!', 1100);
-
-    // Запрыгивает на плашку
+    face('right');
+    await emote('!', 750);
+    await move(RIGHT, ROOF, 'crouch');
     setState('crouchStill');
-    await delay(900);
-    await jumpArc(468, ROOF, 46, 520);
-    setState('crouchStill');
-    await delay(900);
-
-    // Крадётся к кружке
-    await move(498, ROOF, 'crouch');
-    setState('crouchStill');
-    await delay(1500);
-
-    // Толкает: раз... два... и в пропасть
-    await mugNudge(-7, 0);
-    await delay(1300);
-    await mugNudge(-10, 8);
-    await delay(1600);
+    await mugNudge(-9, 8);
+    await delay(420);
+    await mugNudge(-17, 14);
     await mugFall();
-
-    // Смотрит вниз на дело лап своих
-    await move(576, ROOF, 'crouch');
-    await delay(2400);
-
-    // Спрыгивает, обнюхивает, доволен
-    await jumpArc(560, FLOOR, 30, 480);
-    setState('crouchStill');
-    await delay(1600);
     setState('sit');
-    await emote('heart', 1800);
-
-    // Уходит с чувством выполненного долга
-    await leave(true);
+    await emote('heart', 1200);
     await mugHideSoft();
   }
 
-  /* ═══ Сценарий: тихий час ═══ */
-
   async function catNap() {
-    await walkIn(false, 22);
+    await move(LEFT, ROOF);
     face('right');
-
     setState('stretch');
-    await delay(2600);
-    setState('sit');
-    await delay(2200);
+    await delay(1300);
     setState('groom');
-    await delay(5000);
-
-    // Сворачивается и засыпает
+    await delay(2400);
     setState('sleep');
     zzzShow();
-    await delay(6000);
-
-    // Мимо пролетает бабочка — ухо не дрогнуло
-    bflyShow(CARD_W + 30, 40);
-    bflyTo(-40, 90, 3200).then(bflyHide);
-    await delay(7000);
-
-    // Просыпается
+    await delay(5200);
     zzzHide();
-    setState('sit');
-    await delay(2400);
     setState('stretch');
-    await delay(2200);
-
-    await leave(false);
+    await delay(1200);
   }
 
   /* ═══ Цикл жизни ═══ */
 
-  const scenarios = [butterflyHunt, laserChase, mugHeist, catNap];
+  const scenarios = [snowflakeHunt, laserChase, mugHeist, catNap];
   const names = ['butterfly', 'laser', 'mug', 'nap'];
   // ?scenario=butterfly|laser|mug|nap — прогонять один сценарий (для отладки)
   const forced = names.indexOf(new URLSearchParams(location.search).get('scenario'));
@@ -866,11 +802,13 @@
     lastIdx = idx;
     window.__catScenario = names[idx];
     await scenarios[idx]();
+    setState('sit');
+    face(px > CARD_W / 2 ? 'left' : 'right');
     await delay(forced >= 0 ? 2000 : 14000 + Math.random() * 8000);
     cycle();
   }
 
-  setPos(-W - 20, FLOOR);
-  setState('stand');
+  setPos(LEFT, ROOF);
+  setState('sit');
   setTimeout(cycle, 1500);
 })();
