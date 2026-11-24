@@ -604,6 +604,37 @@
     setState('stand');
   }
 
+  function scatterLandingSnow() {
+    const facing = cat.classList.contains('flip') ? -1 : 1;
+    const spray = [];
+    // В кадре прыжка лапы находятся в столбцах 4 и 19 пиксельной сетки.
+    for (const [column, outward] of [[4, -1], [19, 1]]) {
+      const pawX = px + (facing === 1 ? column * SCALE : W - column * SCALE);
+      for (const [size, reach, lift, duration] of [[5, 58, 25, 500], [4, 38, 42, 600], [3, 24, 18, 400]]) {
+        const bit = winterProp(['.W.', 'WWW', '.II'], size, pawX - size * 1.5, ROOF - size * 3);
+        spray.push({ bit, dx: outward * facing * reach, lift, duration });
+      }
+    }
+
+    const start = performance.now();
+    function tick(now) {
+      let active = false;
+      for (const { bit, dx, lift, duration } of spray) {
+        const t = Math.min((now - start) / duration, 1);
+        if (t === 1) {
+          bit.remove();
+          continue;
+        }
+        active = true;
+        const rise = -4 * lift * t * (1 - t);
+        bit.style.transform = `translate(${dx * t}px, ${rise}px)`;
+        bit.style.opacity = Math.min(1, (1 - t) * 3);
+      }
+      if (active) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
   function jumpArc(x, height, dur) {
     const toX = supportedX(x, nearestPerch(x));
     return new Promise(resolve => {
@@ -616,8 +647,12 @@
         const x = fromX + (toX - fromX) * t;
         const y = ROOF - height * 4 * t * (1 - t);
         setPos(x, y);
-        if (t < 1) requestAnimationFrame(tick);
-        else resolve();
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          scatterLandingSnow();
+          resolve();
+        }
       })(performance.now());
     });
   }
