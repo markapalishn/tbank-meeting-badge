@@ -36,198 +36,296 @@
 
   /* ═══ Детали спрайта ═══ */
 
-  const HEAD = [
-    '..OO.....OO..',
-    '.OBPO...OPBO.',
-    '.OBBPO.OPBBO.',
-    'OBBBBOOOBBBBO',
-    'OBBBBBBBBBBBO',
-    'OBBEWBBBEWBBO',
-    'OBBEEBBBEEBBO',
-    'OBBBBBPPBBBBO',
-    'OBBLLLLLLLBBO',
-    '.OBLLLLLLLBO.',
-    '..OOLLLLLOO..',
-    '....OOOOO....',
+  // Отворот, выступающее ухо и лоб нарисованы вместе для каждого ракурса.
+  const FRONT_CAP = [
+    '.......CCCCC.....',
+    '.....CCRRRRRCC...',
+    '...CCRRRRRRRRC..O',
+    '..CRRRCCRRRRRCOBO',
+    '.CRRCCCRRRRRCOPPO',
+    '.WICCCRRRRRCOBPBO',
+    'IWWI.CRRRWWWOBPBO',
+    '.II.OIWWWWWWWIBBO',
+    '...OBIWWWWWIISBBO',
+    '..OBBBIIISBSBBBBO',
   ];
 
-  // Закрытые глаза (моргание, сон)
-  const HEAD_CLOSED = HEAD.map((row, i) => {
-    if (i === 5) return 'OBBBBBBBBBBBO';
-    if (i === 6) return 'OBBEEBBBEEBBO';
-    return row;
-  });
+  const FRONT_MUZZLE = [
+    '..OSBBLLBPBLLBBSO',
+    '...OBLLLLOLLLLBO.',
+    '....OBBLLLLLBBO..',
+    '.....OOSLLLSOO...',
+    '.......OSLSO.....',
+  ];
 
-  const HAT = [
-    '....CCCCCC....',
-    '..CCRRRRRRC...',
-    '.CRRRRRRRRRC..',
-    'WWWRRCRRRRRRC.',
-    'WIWCCCRRRRRRRC',
-    '.I..WWWWWWWWWW',
-    '....IIIIIIIIII',
+  const HEAD = [
+    ...FRONT_CAP,
+    '..OSBEWBBBBBEWBSO',
+    '..OBBEEBBBBBEEBBO',
+    ...FRONT_MUZZLE,
+  ];
+
+  const HEAD_CLOSED = [
+    ...FRONT_CAP,
+    '..OSBBBBBBBBBBBSO',
+    '..OBBEEBBBBBEEBBO',
+    ...FRONT_MUZZLE,
+  ];
+
+  const SIDE_CAP = [
+    '......CCCCC......',
+    '....CCRRRRRCC....',
+    '..CCRRRRRRRRC..O.',
+    '.CRRRCCRRRRRCOBO.',
+    '.CRCCCRRRRRCOPPO.',
+    '.WICCRRRRRCOBPBO.',
+    'IWWICRRRWWWOBPBO.',
+    '.IIOIWWWWWWWIBBO.',
+    '...OIWWWWWIISBBO.',
+  ];
+
+  const SIDE_MUZZLE = [
+    '...OBBBLLLBLLLBPO',
+    '...OSBLLLLLLLLOO.',
+    '....OBBLLLLLLLO..',
+    '.....OOSLLSBOO...',
+    '.......OSSBO.....',
+  ];
+
+  const HEAD_SIDE = [
+    ...SIDE_CAP,
+    '..OBBIIISBBSBBBBO',
+    '..OSBBBBBEWBBBEBO',
+    '..OBSSBBBEEBBBEO.',
+    ...SIDE_MUZZLE,
+  ];
+
+  const HEAD_ASLEEP = [
+    ...SIDE_CAP,
+    '..OBBIIISBBSBBBBO',
+    '..OSBBBBBBBBBBBO.',
+    '..OBSSBBEEEBBEEO.',
+    ...SIDE_MUZZLE,
+  ];
+
+  // Кот тянет за нить: край опускается на глаза и затем приподнимается лапой.
+  const HEAD_HAT_DOWN = [
+    '.................',
+    '........CCCCC....',
+    '......CCRRRRRCC..',
+    '....CCRRRRRRRRCO.',
+    '...CRRRCCRRRRROBO',
+    '..CRRCCCRRRRRCOPO',
+    '..CRCCRRRRRRRCOBO',
+    '..WICRRRRRRRRRCBO',
+    '.IWWICRRRRRRRRCCO',
+    '..IICWWRRRRRRWWIO',
+    '...OIWWWWWWWWWWIO',
+    '..OBIIWWWWWWWIIIO',
+    ...FRONT_MUZZLE,
+  ];
+
+  const HEAD_HAT_LIFT = [
+    '.................',
+    '.......CCCCC.....',
+    '.....CCRRRRRCC..O',
+    '...CCRRRRRRRRCOBO',
+    '..CRRRCCRRRRRCBPO',
+    '.CRRCCCRRRRRCOPBO',
+    '.WICCCRRRRRRCCBBO',
+    'IWWICRRRRRRWWIIBO',
+    '.II.OIWWWWWWWWIBO',
+    '...OBIWWWWWWWISBO',
+    '..OBBBIIIISIIBBBO',
+    '..OBBEEBBBBBEEBBO',
+    ...FRONT_MUZZLE,
   ];
 
   const BODY_SIDE = [
-    '...OOOOOOOOOOOOBBBB..',
-    '..OBBBBBBBBBBBBBBBBBO',
-    '.OBBSBBSBBSBBBBBBBBO.',
-    'OBBBSBBSBBSBBBBBBBBO.',
-    'OBBBBBBBBBBBBBBBBBBO.',
-    'OBBBBBBBBBBBBBBBBBBO.',
-    '.OBBLLLLLLLLLBBBBBO..',
-    '..OOOOOOOOOOOOOOOOO..',
+    '....OOOOOOO......OOOO',
+    '..OOBBBSSBBOOOOOOBBLLO',
+    '.OBBSBBSBBBBSSBBBBBLLLO',
+    'OBBBBSSBBBBBBSBBBBBLLLO',
+    'OBBBBBBBBBBBBBBBBBLLLLO',
+    'OBBBBBBSBBBBBBBBBLLLLSO',
+    '.OBBBBBBSBBSSLLLLLLLBO',
+    '..OBBBSBSOOOOOOOOOBBO',
   ];
 
   const BODY_LOW = [
-    '..OOOOOOOOOOOOOO...',
-    '.OBBSBBSBBSBBBBBO..',
-    'OBBBSBBSBBSBBBBBBO.',
-    'OBBBBBBBBBBBBBBBBO.',
-    '.OBBLLLLLLLLLBBBO..',
-    '..OOOOOOOOOOOOOO...',
+    '....OOOOOO.......OOO',
+    '..OOBBSSBBOOOOOOOBBLO',
+    '.OBSBBBSBBBBSSBBBBBLLO',
+    'OBBBSBBBBBBBBSBBBBLLLLO',
+    'OBBBBBBSBBBBBBBBBLLLLLO',
+    '.OBBBBBBSSBBBSSLLLLBBO',
+    '..OBSSSSSOOOOOOOOBBBO',
   ];
 
   const LEGS_STAND = [
-    '..OBO.OBO..OBO.OBO.',
-    '..OBO.OBO..OBO.OBO.',
-    '..OBO.OBO..OBO.OBO.',
-    '..OBO.OBO..OBO.OBO.',
-    '..OBO.OOO..OOO.OBO.',
-    '..OOO..........OOO.',
+    '.OBBBOOSSO.....OSSOBBBO',
+    '.OBBBOOSSO.....OSSOBBO',
+    '..OBBO.OSO.....OSOOBBO',
+    '..OBO..OSSO....OSSOBO',
+    '..OLLO.OOOO....OOOOLLO',
+    '..OOOO............OOOO',
   ];
 
-  // Шаг 1: внешние лапы расставлены, внутренняя пара собрана и поднята
+  // Ближняя передняя лапа тянется вперёд, задняя отталкивается.
   const LEGS_WALK_A = [
-    '..OBO..OBOOBO..OBO.',
-    '..OBO..OBOOBO..OBO.',
-    '..OBO..OBOOBO..OBO.',
-    '..OBO..OOOOOO..OBO.',
-    '..OBO..........OBO.',
-    '..OOO..........OOO.',
+    '..OBBBOSSO......OSOBBBO',
+    '.OBBBO.OSSO....OSSOOBBO',
+    '.OBBO...OSSO..OSSO..OBBO',
+    'OBBO....OOOO..OOOO...OBBO',
+    'OLLO..................OLLO',
+    'OOOO..................OOOO',
   ];
 
-  // Шаг 2: внутренняя пара стоит, внешние лапы подняты
+  // Во второй фазе ближние лапы проходят под животом.
   const LEGS_WALK_B = [
-    '.OBO..OBOOBO...OBO.',
-    '.OBO..OBOOBO...OBO.',
-    '.OOO..OBOOBO...OOO.',
-    '......OBOOBO.......',
-    '......OBOOBO.......',
-    '......OOOOOO.......',
+    '..OBBBO...........OBBBO',
+    '.OSOBBBO.........OBBBOO',
+    '.OSOOBBO........OBBBOSSO',
+    'OSSO.OBBO......OBBBO.OSSO',
+    'OOOO..OLLO....OLLO...OOOO',
+    '......OOOO....OOOO',
   ];
 
   const LEGS_FOLDED = [
-    '.OBBO........OBBO..',
-    '.OOOO........OOOO..',
+    '.OBBBSSSO........OBBBSO',
+    '..OBBLLLO........OBBLLO',
+    '...OOOOOO........OOOOOO',
   ];
 
   const LEGS_POUNCE = [
-    '..OBO........OBO...',
-    '.OBO..........OBO..',
-    'OBO............OBO.',
-    'OLO............OLO.',
+    '..OBBBSSO.......OSOBBBSO',
+    '.OBBBSOSSO.......OSOBBBBO',
+    'OBBBOO.OOOO.......OOOOBBBOO',
+    'OLLO.................OOBBLLO',
+    'OOO....................OOOOO',
   ];
 
   const TAIL_UP = [
-    '.OO..',
-    'OLLO.',
-    'OLLO.',
-    'OBBO.',
-    'OBBO.',
-    '.OBBO',
-    '..OBO',
+    '..OOO',
+    '.OLLLO',
+    'OLLOO',
+    'OSSO',
+    'OBBO',
+    'OBBSO',
+    '.OBBBO',
+    '..OSBBO',
+    '...OSBBO',
   ];
 
   const TAIL_UP2 = [
-    '..OO.',
-    '.OLLO',
-    '.OLLO',
-    '.OBBO',
-    'OBBO.',
-    'OBBO.',
-    '.OBO.',
+    '...OOO',
+    '..OLLLO',
+    '.OLLOO',
+    '.OSSO',
+    'OBBBO',
+    'OBBO',
+    'OBBSO',
+    '.OBBBO',
+    '..OSBBBO',
   ];
 
   const TAIL_SIT = [
-    '.OOOOO.',
-    'OBBBLLO',
-    '.OOOOO.',
+    '.OOO...........',
+    'OSSBO..........',
+    'OBSBO..........',
+    'OBBSBO.........',
+    '.OBBSBO..OOOO..',
+    '..OBBBSSSBLLLO.',
+    '...OOOOOOOOOO..',
   ];
 
   const SIT_BODY = [
-    '...OBBBBBBBO.....',
-    '..OBBBBBBBBBO....',
-    '.OBSBBSBBBBBBO...',
-    '.OBSBBSBBBBBBO...',
-    'OBBSBBSBBBOBOBO..',
-    'OBBBBBBBBBOBOBO..',
-    'OBBBBBBBBBOBOBO..',
-    'OBBBBBBBBBOBOBO..',
-    'OBBBBBBBBBOBOBO..',
-    '.OBBBBBBBBOBOBO..',
-    '.OBBBBBBBBOBOBO..',
-    '..OBBBBBBBOLOLO..',
-    '...OOOOOOOOOOOO..',
+    '.........OOOOO.....',
+    '.......OOBBLLLO....',
+    '......OBBBLLLLLO...',
+    '.....OBBBBLLLLLO...',
+    '....OSSBBBLLLLLBO..',
+    '...OBBSSBBBLLLSBBO.',
+    '..OBBBBBBBBSLLSBBO.',
+    '.OBSSBBBBBBBLBSBBO.',
+    'OBBBBSSBBBBBBBSBBO.',
+    'OBBBBBBSSBBBBSBSBO.',
+    'OBBBBBBBBSBBBSBSBO.',
+    'OBBBBBBBBBSBBSBSBO.',
+    '.OBBBBBBBSSBBOSBBO.',
+    '..OSBBBSSOBLLOOLLO.',
+    '...OOOOOOOOOOOOOOO.',
   ];
 
   const GROOM_BODY = [
-    '...OBBBBBBBO.....',
-    '..OBBBBBBBBBO....',
-    '.OBSBBSBBBBBBO...',
-    '.OBSBBSBBBBBBO...',
-    'OBBSBBSBBBOBO....',
-    'OBBBBBBBBBOBO....',
-    'OBBBBBBBBBOBO....',
-    'OBBBBBBBBBOBO....',
-    'OBBBBBBBBBOBO....',
-    '.OBBBBBBBBOBO....',
-    '.OBBBBBBBBOBO....',
-    '..OBBBBBBBOLO....',
-    '...OOOOOOOOOO....',
+    ...SIT_BODY.slice(0, 7),
+    '.OBSSBBBBBBBLBSBO..',
+    'OBBBBSSBBBBBBBSBO..',
+    'OBBBBBBSSBBBBSBO...',
+    'OBBBBBBBBSBBBSBO...',
+    'OBBBBBBBBBSBBSBO...',
+    '.OBBBBBBBSSBBSBO...',
+    '..OSBBBSSOBBLLOO...',
+    '...OOOOOOOOOOOO....',
   ];
 
   const PAW_UP = [
-    'OOO',
-    'OLO',
-    'OBO',
-    'OBO',
-    'OBO',
-    'OBO',
-    'OBO',
+    '.OO..',
+    'OLLO.',
+    'OLLO.',
+    '.OBBO',
+    '.OBBO',
+    '.OSBO',
+    '.OBBO',
+    '..OO.',
   ];
 
   const SLEEP_BODY = [
-    '.....OOOOOOOOO......',
-    '...OOBBBBBBBBBOO....',
-    '..OBBSBBSBBSBBBBO...',
-    '.OBBSBBSBBSBBBBBBO..',
-    'OBBBBBBBBBBBBBBBBBO.',
-    'OBBBBBBBBBBBBBBBBBO.',
-    'OBBBBBBBBBBBBBBBBBO.',
-    '.OBBBBBBBBBBBBBBBO..',
-    '..OOOOOOOOOOOOOOO...',
+    '.......OOOOOOO.........',
+    '.....OOBBSBBSBOO.......',
+    '...OOBBBSSBBBSSBOO.....',
+    '..OBBBBSSBBBBBSSBBO....',
+    '.OBBBBSSBBBBBBBBBBBO...',
+    '.OBBBBBBBBBBBSSBBBBBO..',
+    'OBBBBBBSSBBBBBSSBBBBBO.',
+    'OBBBBBBBBSSBBBBBBBLLLBO',
+    'OBBBBBBBBBBBBBBLLLLLLBO',
+    '.OBBBBBBBBBBSBLLLLLLBO.',
+    '..OOSBBBBBBSSBBLLLBOO..',
+    '....OOOOOOOOOOOOOOO....',
+  ];
+
+  const SLEEP_TAIL = [
+    '.OO....................',
+    'OSSBO................OOO.',
+    'OBSBO...............OLLLO',
+    'OBBSBO............OBLLLO.',
+    '.OBBSBO.........OOSBBBO..',
+    '..OBBSBOO....OOOSBBBBO...',
+    '...OBBBSSOOOOSBBBBBO.....',
+    '....OBBBSSBBBSBBOO.....',
+    '.....OOOOOOOOOOO.......',
   ];
 
   const STRETCH_BODY = [
-    '...OOOO..........',
-    '..OBBBBO.........',
-    '.OBSBBSBOO.......',
-    '.OBBSBBSBBOO.....',
-    'OBBBBBBBBBBBOO...',
-    'OBBBBBBBBBBBBBOO.',
-    'OBBBBBBBBBBBBBBBO',
-    '.OBBOBBOBBBBBBBBO',
-    '..OBO.OBO........',
-    '..OBO.OBO........',
-    '..OLO.OLO........',
-    '..OOO.OOO........',
+    '....OOOOO',
+    '..OOBBSBBO',
+    '.OBBSBBSBBOO',
+    '.OBBBSBBBBBBOO',
+    '.OBBBBBBSBBBBBOOO',
+    '.OBBBBBBSSBBBBBBBOO',
+    '..OBBBBBBSBBBBBBBBLO',
+    '..OBBBOSSSOBBBBBBLLLO',
+    '..OBBO.OSSOOOSBLLLLLO',
+    '..OBO..OSO...OOBBLLO',
+    '.OBLO..OSSO....OBBLO',
+    '.OOOO..OOOO.....OOOO',
   ];
 
   const FRONT_FLAT = [
-    '.OOOOOO.',
-    'OBBBBLLO',
-    '.OOOOOO.',
+    'OSSOSSSSSSOOO',
+    'OBBBBBBBOOOLLO',
+    '.OOOOOOOOOOOOO',
   ];
 
   /* ═══ Сборка кадров ═══ */
@@ -249,85 +347,90 @@
 
   const FRAMES = {};
 
-  function makeFrame(name, parts, hatDrop = 0) {
+  // Привязка головы к позе: помпон выступает на 2 пикселя влево, верх на 4 вверх.
+  function headAt(art, x, y) {
+    return [art, x - 2, y - 4];
+  }
+
+  function makeFrame(name, parts) {
     const g = emptyGrid();
     parts.forEach(([art, x, y]) => {
       stamp(g, art, x, y + HAT_SPACE);
-      if (art === HEAD || art === HEAD_CLOSED) stamp(g, HAT, x - 1, y + hatDrop);
     });
     FRAMES[name] = g.map(r => r.join(''));
   }
 
   // Стоит / идёт (мордой вправо)
   makeFrame('stand', [
-    [TAIL_UP, 0, 6], [BODY_SIDE, 3, 11], [LEGS_STAND, 3, 18], [HEAD, 17, 1],
+    [TAIL_UP, 0, 6], [BODY_SIDE, 3, 11], [LEGS_STAND, 3, 18], headAt(HEAD_SIDE, 17, 1),
   ]);
   makeFrame('walk1', [
-    [TAIL_UP, 0, 6], [BODY_SIDE, 3, 11], [LEGS_WALK_A, 3, 18], [HEAD, 17, 1],
+    [TAIL_UP, 0, 6], [BODY_SIDE, 3, 11], [LEGS_WALK_A, 3, 18], headAt(HEAD_SIDE, 17, 1),
   ]);
   makeFrame('walk2', [
-    [TAIL_UP2, 0, 6], [BODY_SIDE, 3, 11], [LEGS_WALK_B, 3, 18], [HEAD, 17, 1],
+    [TAIL_UP2, 0, 6], [BODY_SIDE, 3, 11], [LEGS_WALK_B, 3, 18], headAt(HEAD_SIDE, 17, 1),
   ]);
 
   // Сидит
   makeFrame('sit', [
-    [SIT_BODY, 2, 11], [TAIL_SIT, 13, 21], [HEAD, 4, 0],
+    [SIT_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD, 7, 0),
   ]);
   makeFrame('sit-blink', [
-    [SIT_BODY, 2, 11], [TAIL_SIT, 13, 21], [HEAD_CLOSED, 4, 0],
+    [SIT_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD_CLOSED, 7, 0),
   ]);
 
   // Умывается
   makeFrame('groom1', [
-    [GROOM_BODY, 2, 11], [TAIL_SIT, 12, 21], [HEAD, 4, 0], [PAW_UP, 14, 8],
+    [GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD, 7, 0), [PAW_UP, 16, 8],
   ]);
   makeFrame('groom2', [
-    [GROOM_BODY, 2, 11], [TAIL_SIT, 12, 21], [HEAD_CLOSED, 4, 0], [PAW_UP, 14, 10],
+    [GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17], headAt(HEAD_CLOSED, 7, 0), [PAW_UP, 17, 10],
   ]);
 
   // Спит клубком
   makeFrame('sleep', [
-    [SLEEP_BODY, 2, 15], [HEAD_CLOSED, 13, 6], [TAIL_SIT, 16, 21],
+    [SLEEP_BODY, 2, 12], headAt(HEAD_ASLEEP, 13, 7), [SLEEP_TAIL, 3, 15],
   ]);
 
   // Крадётся / готовится к прыжку
   makeFrame('crouch1', [
-    [TAIL_UP, 0, 9], [BODY_LOW, 3, 16], [LEGS_FOLDED, 3, 22], [HEAD, 17, 8],
+    [TAIL_UP, 0, 9], [BODY_LOW, 3, 16], [LEGS_FOLDED, 3, 21], headAt(HEAD_SIDE, 17, 8),
   ]);
   makeFrame('crouch2', [
-    [TAIL_UP2, 0, 9], [BODY_LOW, 3, 16], [LEGS_FOLDED, 3, 22], [HEAD, 17, 8],
+    [TAIL_UP2, 0, 9], [BODY_LOW, 3, 16], [LEGS_FOLDED, 3, 21], headAt(HEAD_SIDE, 17, 8),
   ]);
 
   // Прыжок
   makeFrame('pounce', [
-    [TAIL_UP2, 0, 4], [BODY_SIDE, 3, 10], [LEGS_POUNCE, 3, 17], [HEAD, 17, 0],
+    [TAIL_UP2, 0, 4], [BODY_SIDE, 3, 10], [LEGS_POUNCE, 3, 17], headAt(HEAD_SIDE, 17, 0),
   ]);
 
   // Потягивается
   makeFrame('stretch', [
-    [TAIL_UP, 0, 6], [STRETCH_BODY, 1, 12], [HEAD, 16, 9], [FRONT_FLAT, 17, 21],
+    [TAIL_UP, 0, 6], [STRETCH_BODY, 1, 12], headAt(HEAD_SIDE, 16, 9), [FRONT_FLAT, 17, 21],
   ]);
 
   // Локальные кадры зимних сцен. Реквизит в лапах движется вместе со спрайтом.
-  const SEATED = [[GROOM_BODY, 2, 11], [TAIL_SIT, 12, 21]];
+  const SEATED = [[GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17]];
   const REACH = ['..OOOOOOO', '.OBBBLLLO', 'OBBBBOOO.', '.OOO.....'];
   const SNOW = ['..III..', '.IWWWI.', 'IWWWWWI', 'IWWWWWI', '.IIWWI.', '..IIII.'];
-  makeFrame('scoop-out', [...SEATED, [HEAD, 6, 3], [REACH, 12, 18], [SNOW, 18, 20]]);
-  makeFrame('scoop-in', [...SEATED, [HEAD, 5, 2], [REACH, 10, 16], [SNOW, 14, 18]]);
-  makeFrame('scoop-lift', [...SEATED, [HEAD, 4, 0], [PAW_UP, 14, 11], [SNOW, 12, 12]]);
-  makeFrame('snow-nose', [...SEATED, [HEAD, 4, 0], [SNOW, 8, 6]]);
-  makeFrame('sneeze', [...SEATED, [HEAD_CLOSED, 7, 3], [REACH, 12, 13]]);
+  makeFrame('scoop-out', [...SEATED, headAt(HEAD_SIDE, 9, 3), [REACH, 16, 18], [SNOW, 22, 18]]);
+  makeFrame('scoop-in', [...SEATED, headAt(HEAD_SIDE, 8, 2), [REACH, 15, 16], [SNOW, 19, 17]]);
+  makeFrame('scoop-lift', [...SEATED, headAt(HEAD, 7, 0), [PAW_UP, 16, 11], [SNOW, 14, 11]]);
+  makeFrame('snow-nose', [...SEATED, headAt(HEAD, 7, 0), [SNOW, 11, 6]]);
+  makeFrame('sneeze', [...SEATED, headAt(HEAD_CLOSED, 9, 3), [REACH, 15, 13]]);
 
+  // Нить выходит из-под помпона, свободный конец ложится поперёк поднятой лапы.
   const THREAD = [
-    '..RRR', '.RR..', 'RR...', 'RR...', '.RR..', '..RR.', '...RR',
+    '..RR', '.RR.', 'RR..', 'RR..', '.RR.', '..RR', '...RR',
     '....RR', '.....RR', '......RR', '.......RR', '........RR',
     '.........RR', '..........RR', '...........RR', '............RR',
   ];
-  makeFrame('loose-end', [...SEATED, [HEAD, 4, 0], [THREAD.slice(0, 7), 0, -2]]);
-  makeFrame('long-end', [...SEATED, [HEAD, 4, 0], [THREAD, 0, -2]]);
-  makeFrame('catch-yarn', [...SEATED, [HEAD, 4, 0], [THREAD, 0, -2], [PAW_UP, 12, 12]]);
-  makeFrame('hat-down', [...SEATED, [HEAD, 4, 0], [THREAD.slice(0, 9), 0, 4], [PAW_UP, 9, 11]], 6);
-  makeFrame('hat-lift', [...SEATED, [HEAD_CLOSED, 4, 0], [PAW_UP, 13, 6]], 3);
+  makeFrame('loose-end', [...SEATED, headAt(HEAD, 7, 0), [THREAD.slice(0, 7), 3, 3]]);
+  makeFrame('long-end', [...SEATED, headAt(HEAD, 7, 0), [THREAD, 3, 3]]);
+  makeFrame('catch-yarn', [...SEATED, headAt(HEAD, 7, 0), [THREAD, 3, 3], [PAW_UP, 13, 14]]);
+  makeFrame('hat-down', [...SEATED, headAt(HEAD_HAT_DOWN, 7, 0), [THREAD.slice(0, 12), 4, 6], [PAW_UP, 11, 14]]);
+  makeFrame('hat-lift', [...SEATED, headAt(HEAD_HAT_LIFT, 7, 0), [PAW_UP, 13, 5]]);
 
   /* ═══ Реквизит ═══ */
 
@@ -565,8 +668,8 @@
   function scatterLandingSnow() {
     const facing = cat.classList.contains('flip') ? -1 : 1;
     const spray = [];
-    // В кадре прыжка лапы находятся в столбцах 4 и 19 пиксельной сетки.
-    for (const [column, outward] of [[4, -1], [19, 1]]) {
+    // Центры стоп в нижней строке спрайта pounce.
+    for (const [column, outward] of [[4.5, -1], [28.5, 1]]) {
       const pawX = px + (facing === 1 ? column * SCALE : W - column * SCALE);
       for (const [size, reach, lift, duration] of [[5, 58, 25, 500], [4, 38, 42, 600], [3, 24, 18, 400]]) {
         const bit = winterProp(['.W.', 'WWW', '.II'], size, pawX - size * 1.5, ROOF - size * 3);
@@ -658,12 +761,12 @@
     });
   }
 
-  // В сидячей позе голова начинается в четвёртом столбце спрайта.
+  // Центр розового пикселя на мордочке в кадрах sit и snow-nose.
   function seatedNose() {
-    const offset = 10.5 * SCALE;
+    const offset = 14.5 * SCALE;
     return {
       x: px + (cat.classList.contains('flip') ? W - offset : offset),
-      y: pfeet - H + (HAT_SPACE + 7.5) * SCALE,
+      y: pfeet - H + (HAT_SPACE + 8.5) * SCALE,
     };
   }
 
@@ -711,11 +814,13 @@
     face('left');
     await delay(700);
 
-    // Лапы и точка встречаются с учётом направления прыжка.
+    // После прыжка передняя лапа оказывается в центре лазерной точки.
+    const frontPaw = 23 * SCALE; // середина стопы в кадре crouch1
+    const spotRadius = laserEl.offsetWidth / 2;
     for (const spot of [54, 482, 256]) {
       laserMove(spot, ROOF - 12);
       const rightward = spot > px + W / 2;
-      const landing = spot - (rightward ? W - 28 : 28);
+      const landing = spot + spotRadius - (rightward ? frontPaw : W - frontPaw);
       await move(landing + (rightward ? -52 : 52), 'run');
       await jumpArc(landing, 25, 310);
       setState('crouchStill');
