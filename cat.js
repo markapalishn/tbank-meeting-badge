@@ -562,51 +562,62 @@
     })();
   }
 
-  // Ходьба/бег к точке; скорость задаётся состоянием
-  async function move(x, feetY, state) {
+  // Координаты левого края спрайта на каждой плашке до масштабирования OBS.
+  const perches = Array.from(document.querySelector('.employee-card__top').children, tile => {
+    const inset = 18;
+    return { left: tile.offsetLeft + inset, right: tile.offsetLeft + tile.offsetWidth - W - inset };
+  });
+
+  function supportedX(x, perch) {
+    return Math.max(perch.left, Math.min(x, perch.right));
+  }
+
+  function nearestPerch(x) {
+    const [logo, name] = perches;
+    return x <= (logo.right + name.left) / 2 ? logo : name;
+  }
+
+  async function walkTo(x, state) {
     const dx = x - px;
-    if (Math.abs(dx) > 2) face(dx < 0 ? 'left' : 'right');
-    const dist = Math.max(Math.abs(dx), Math.abs(feetY - pfeet));
-    if (dist < 1) {
-      setState('stand');
-      return;
+    if (Math.abs(dx) < 1) return;
+    face(dx < 0 ? 'left' : 'right');
+    const speed = state === 'run' ? 0.42 : state === 'crouch' ? 0.09 : 0.14;
+    setState(state);
+    await tween(cat, { left: x }, Math.abs(dx) / speed, 'linear');
+    setPos(x, ROOF);
+  }
+
+  async function move(x, state = 'walk') {
+    const from = nearestPerch(px);
+    const to = nearestPerch(x);
+    if (from !== to) {
+      const rightward = to.left > from.left;
+      await walkTo(rightward ? from.right : from.left, state);
+      face(rightward ? 'right' : 'left');
+      setState('crouchStill');
+      await delay(140);
+      await jumpArc(rightward ? to.left : to.right, 48, 520);
+      setState('crouchStill');
+      await delay(100);
     }
-    const speed = state === 'run' ? 0.42 : state === 'crouch' ? 0.09 : 0.14; // px за мс
-    setState(state || 'walk');
-    await tween(cat, { left: x, top: feetY - H }, dist / speed, 'linear');
-    setPos(x, feetY);
+    await walkTo(supportedX(x, to), state);
     setState('stand');
   }
 
-  // Обе плашки измеряем в координатах сцены до масштабирования для OBS.
-  const perches = Array.from(document.querySelector('.employee-card__top').children);
-
-  async function sitOnRoof() {
-    const inset = 18;
-    const seats = perches.map(tile => {
-      const left = tile.offsetLeft + inset;
-      const right = tile.offsetLeft + tile.offsetWidth - inset - W;
-      return Math.max(left, Math.min(px, right));
-    });
-    const nearest = seats.reduce((a, b) => Math.abs(a - px) <= Math.abs(b - px) ? a : b);
-    if (nearest !== px) await move(nearest, ROOF);
-    setState('sit');
-  }
-
-  function jumpArc(toX, toFeetY, height, dur) {
+  function jumpArc(x, height, dur) {
+    const toX = supportedX(x, nearestPerch(x));
     return new Promise(resolve => {
-      const fromX = px, fromY = pfeet;
+      const fromX = px;
       if (toX !== fromX) face(toX < fromX ? 'left' : 'right');
       setState('pounce');
       const start = performance.now();
       (function tick(now) {
         const t = Math.min((now - start) / dur, 1);
         const x = fromX + (toX - fromX) * t;
-        const y = fromY + (toFeetY - fromY) * t - height * 4 * t * (1 - t);
-        cat.style.left = x + 'px';
-        cat.style.top = (y - H) + 'px';
+        const y = ROOF - height * 4 * t * (1 - t);
+        setPos(x, y);
         if (t < 1) requestAnimationFrame(tick);
-        else { px = toX; pfeet = toFeetY; resolve(); }
+        else resolve();
       })(performance.now());
     });
   }
@@ -741,15 +752,15 @@
   /* ═══ Общие ходы ═══ */
 
   async function snowflakeHunt() {
-    await move(LEFT, ROOF);
+    await move(LEFT);
     flakeShow(440, -130);
-    await sitOnRoof();
+    setState('sit');
     await flakeTo(350, -85, 1800);
     await delay(650);
-    await move(195, ROOF, 'crouch');
+    await move(195, 'crouch');
     const flight = flakeTo(480, -145, 850);
-    await jumpArc(282, ROOF, 43, 620);
-    await sitOnRoof();
+    await jumpArc(282, 43, 620);
+    setState('sit');
     await flight;
     await delay(700);
 
@@ -761,9 +772,9 @@
   }
 
   async function laserChase() {
-    await move(280, ROOF);
+    await move(280);
     laserShow(54, ROOF - 12);
-    await sitOnRoof();
+    setState('sit');
     face('left');
     await delay(700);
 
@@ -772,29 +783,29 @@
       laserMove(spot, ROOF - 12);
       const rightward = spot > px + W / 2;
       const landing = spot - (rightward ? W - 28 : 28);
-      await move(landing + (rightward ? -52 : 52), ROOF, 'run');
-      await jumpArc(landing, ROOF, 25, 310);
+      await move(landing + (rightward ? -52 : 52), 'run');
+      await jumpArc(landing, 25, 310);
       setState('crouchStill');
       await delay(460);
     }
     laserHide();
-    await sitOnRoof();
+    setState('sit');
     await delay(950);
   }
 
   async function mugHeist() {
     mugShow(CARD_W - 50, ROOF - 24);
-    await move(340, ROOF);
-    await sitOnRoof();
+    await move(340);
+    setState('sit');
     face('right');
     await delay(750);
-    await move(RIGHT, ROOF, 'crouch');
+    await move(RIGHT, 'crouch');
     setState('crouchStill');
     await mugNudge(-9, 8);
     await delay(420);
     await mugNudge(-17, 14);
     await mugFall();
-    await sitOnRoof();
+    setState('sit');
     await showHeart(1200);
     await mugHideSoft();
   }
@@ -816,7 +827,7 @@
   }
 
   async function snowballSneeze() {
-    await move(290, ROOF);
+    await move(290);
     face('right');
     for (let scoop = 0; scoop < 2; scoop++) {
       await pose('scoop-out', 420);
@@ -833,14 +844,14 @@
       bit.remove();
     });
     await pose('sneeze', 430);
-    await sitOnRoof();
+    setState('sit');
     await Promise.all(spray);
   }
 
   async function hotCocoa() {
     const rim = CARD_W - 82;
     const mug = winterProp(COCOA, 4, rim, ROOF - 32);
-    await move(rim - 78, ROOF);
+    await move(rim - 78);
     face('right');
     const curl = winterProp(STEAM, 3, rim + 8, ROOF - 48);
     await Promise.all([
@@ -857,13 +868,13 @@
     fish.remove();
     await tween(wisp, { left: rim + 50, top: ROOF - 128 }, 400, 'easeOut');
     wisp.remove();
-    await sitOnRoof();
+    setState('sit');
     await delay(450);
     mug.remove();
   }
 
   async function looseYarn() {
-    await move(350, ROOF);
+    await move(350);
     face('right');
     await pose('loose-end', 650);
     await pose('long-end', 720);
@@ -872,11 +883,11 @@
     await pose('hat-lift', 340);
     setState('groom');
     await delay(850);
-    await sitOnRoof();
+    setState('sit');
   }
 
   async function catNap() {
-    await move(LEFT, ROOF);
+    await move(LEFT);
     face('right');
     setState('stretch');
     await delay(1300);
@@ -908,7 +919,7 @@
     lastIdx = idx;
     window.__catScenario = names[idx];
     await scenarios[idx]();
-    await sitOnRoof();
+    setState('sit');
     face(px > CARD_W / 2 ? 'left' : 'right');
     await delay(forced >= 0 ? 2000 : 14000 + Math.random() * 8000);
     cycle();
