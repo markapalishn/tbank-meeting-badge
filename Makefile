@@ -18,6 +18,7 @@ run: ## Запустить локальный сервер и открыть б�
 
 test: ## Проверить синтаксис анимаций
 	node --check cat.js
+	node --check frost-corner.js
 
 deploy: test ## Опубликовать ветку main на GitHub Pages
 	git push $(PAGES_REMOTE) $(PAGES_BRANCH):$(PAGES_BRANCH)

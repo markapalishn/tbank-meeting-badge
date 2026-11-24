@@ -414,11 +414,28 @@
   const SEATED = [[GROOM_BODY, 3, 9], [TAIL_SIT, 0, 17]];
   const REACH = ['..OOOOOOO', '.OBBBLLLO', 'OBBBBOOO.', '.OOO.....'];
   const SNOW = ['..III..', '.IWWWI.', 'IWWWWWI', 'IWWWWWI', '.IIWWI.', '..IIII.'];
-  makeFrame('scoop-out', [...SEATED, headAt(HEAD_SIDE, 9, 3), [REACH, 16, 18], [SNOW, 22, 18]]);
+  const SCOOP_POSE = [...SEATED, headAt(HEAD_SIDE, 9, 3), [REACH, 16, 18]];
+  const SCOOP_SNOW = [SNOW, 22, 18];
+  makeFrame('return-gather', SCOOP_POSE);
+  makeFrame('scoop-out', [...SCOOP_POSE, SCOOP_SNOW]);
   makeFrame('scoop-in', [...SEATED, headAt(HEAD_SIDE, 8, 2), [REACH, 15, 16], [SNOW, 19, 17]]);
   makeFrame('scoop-lift', [...SEATED, headAt(HEAD, 7, 0), [PAW_UP, 16, 11], [SNOW, 14, 11]]);
   makeFrame('snow-nose', [...SEATED, headAt(HEAD, 7, 0), [SNOW, 11, 6]]);
   makeFrame('sneeze', [...SEATED, headAt(HEAD_CLOSED, 9, 3), [REACH, 15, 13]]);
+
+  const WINDUP_PAW = [
+    '.OO......', 'OLLO.....', '.OLLO....', '..OBBO...', '...OBBO..',
+    '....OBBO.', '.....OBBO', '......OOO',
+  ];
+  const SWING_PAW = [
+    '........OOO', '.......OLLO', '......OLLO.', '.....OBBO..',
+    '....OBBO...', '...OBBO....', '..OSBO.....', '.OBBO......', '.OOO.......',
+  ];
+  const THROW_SNOW = [SNOW, 24, 5];
+  const THROW_POSE = [...SEATED, headAt(HEAD_SIDE, 8, 0), [SWING_PAW, 15, 10]];
+  makeFrame('return-windup', [...SEATED, headAt(HEAD_SIDE, 7, 2), [WINDUP_PAW, 9, 10], [SNOW, 5, 5]]);
+  makeFrame('return-aim', [...THROW_POSE, THROW_SNOW]);
+  makeFrame('return-release', THROW_POSE);
 
   // Нить выходит из-под помпона, свободный конец ложится поперёк поднятой лапы.
   const THREAD = [
@@ -869,6 +886,95 @@
     await Promise.all(spray);
   }
 
+  // Начало координат — левый верхний угол снежка в соответствующем кадре кота.
+  function snowballFlight(ball, catX, stamp, outgoing) {
+    const x = catX + stamp[1] * SCALE;
+    const y = pfeet - H + (HAT_SPACE + stamp[2]) * SCALE;
+    ball.style.left = x + 'px';
+    ball.style.top = y + 'px';
+    const duration = outgoing ? 1220 : 1460;
+    const lift = outgoing ? 164 : 130;
+    const start = performance.now();
+    return new Promise(resolve => {
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const edgeFraction = outgoing ? t : 1 - t;
+        // Правый край камеры в координатах бейджа, включая изменение размера OBS в полёте.
+        const bounds = container.getBoundingClientRect();
+        const edgeX = (innerWidth - bounds.left) * CARD_W / bounds.width + 12;
+        const dx = (edgeX - x) * edgeFraction;
+        const dy = 96 * edgeFraction - 4 * lift * t * (1 - t);
+        ball.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve();
+      }
+      tick(start);
+    });
+  }
+
+  async function snowballReturn() {
+    const gatherX = supportedX(RIGHT - 72, perches[1]);
+    await move(gatherX - 56);
+    face('right');
+    setState('sit');
+
+    const ball = winterProp(SNOW, SCALE, 0, 0);
+    ball.classList.add('snowball-projectile');
+    try {
+      const arriving = snowballFlight(ball, gatherX, SCOOP_SNOW, false);
+      await delay(790);
+      setState('crouchStill');
+      cat.style.zIndex = '4'; // Пригибается за снежной кромкой плашки.
+      await tween(cat, { top: ROOF - H + 63 }, 190, 'easeIn');
+      await arriving;
+      ball.style.transformOrigin = 'center bottom';
+      ball.style.transform = 'scale(1.4, .55)';
+
+      const impactX = parseFloat(ball.style.left) + SNOW[0].length * SCALE / 2;
+      const impactY = parseFloat(ball.style.top) + SNOW.length * SCALE;
+      await Promise.all([-24, 13, 37].map(async (distance, i) => {
+        const fleck = winterProp(['WI'], 3 + i % 2, impactX, impactY);
+        try {
+          await tween(fleck, { left: impactX + distance / 2, top: impactY - 18 - i * 5 }, 120, 'easeOut');
+          await tween(fleck, { left: impactX + distance, top: impactY }, 160, 'easeIn');
+        } finally {
+          fleck.remove();
+        }
+      }));
+      await tween(cat, { top: ROOF - H + 32 }, 230, 'easeOut');
+      await delay(420);
+      await tween(cat, { top: ROOF - H }, 230, 'easeOut');
+      cat.style.removeProperty('z-index');
+      await move(gatherX, 'crouch');
+      face('right');
+
+      ball.style.transition = 'transform 220ms ease-out';
+      ball.style.transform = 'scale(1)';
+      await pose('return-gather', 240);
+      ball.style.transition = '';
+      ball.style.display = 'none';
+      await pose('scoop-out', 330);
+      await pose('scoop-in', 310);
+      await pose('scoop-out', 260);
+      await pose('scoop-in', 260);
+      await pose('scoop-lift', 280);
+      await pose('return-windup', 420);
+      await pose('return-aim', 70);
+
+      // При отпускании тот же рисунок снега остаётся на том же пикселе лапы.
+      showFrame('return-release');
+      ball.style.display = '';
+      const departing = snowballFlight(ball, px, THROW_SNOW, true);
+      await delay(280);
+      setState('stand');
+      await departing;
+    } finally {
+      ball.remove();
+      cat.style.removeProperty('z-index');
+      setPos(px, ROOF);
+    }
+  }
+
   async function looseYarn() {
     await move(350);
     face('right');
@@ -897,8 +1003,16 @@
 
   /* ═══ Цикл жизни ═══ */
 
-  const scenarios = [snowflakeHunt, laserChase, catNap, snowballSneeze, looseYarn];
-  const names = ['butterfly', 'laser', 'nap', 'snowball', 'yarn'];
+  const scenarios = {
+    butterfly: snowflakeHunt,
+    laser: laserChase,
+    nap: catNap,
+    snowball: snowballSneeze,
+    yarn: looseYarn,
+    frost: window.playFrostCorner,
+    'snowball-return': snowballReturn,
+  };
+  const names = Object.keys(scenarios);
   // ?scenario=<имя> повторяет выбранную сцену.
   const forced = names.indexOf(new URLSearchParams(location.search).get('scenario'));
   let lastIdx = -1;
@@ -908,11 +1022,11 @@
     if (forced >= 0) {
       idx = forced;
     } else {
-      do { idx = Math.floor(Math.random() * scenarios.length); } while (idx === lastIdx);
+      do { idx = Math.floor(Math.random() * names.length); } while (idx === lastIdx);
     }
     lastIdx = idx;
     window.__catScenario = names[idx];
-    await scenarios[idx]();
+    await scenarios[names[idx]]();
     setState('sit');
     face(px > CARD_W / 2 ? 'left' : 'right');
     await delay(forced >= 0 ? 2000 : 14000 + Math.random() * 8000);
