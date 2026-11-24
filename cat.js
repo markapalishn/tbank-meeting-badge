@@ -59,6 +59,13 @@
     return row;
   });
 
+  const HEAD_LOOK = HEAD.map((row, i) => {
+    if (i === 4) return 'OBBBEWBBBEWBO';
+    if (i === 5) return 'OBBBEEBBBEEBO';
+    if (i === 6) return 'OBBBBBBBBBBBO';
+    return row;
+  });
+
   const HAT = [
     '....CCCCCC....',
     '..CCRRRRRRC...',
@@ -250,11 +257,11 @@
 
   const FRAMES = {};
 
-  function makeFrame(name, parts) {
+  function makeFrame(name, parts, hatDrop = 0) {
     const g = emptyGrid();
     parts.forEach(([art, x, y]) => {
       stamp(g, art, x, y + HAT_SPACE);
-      if (art === HEAD || art === HEAD_CLOSED) stamp(g, HAT, x - 1, y);
+      if (art === HEAD || art === HEAD_CLOSED || art === HEAD_LOOK) stamp(g, HAT, x - 1, y + hatDrop);
     });
     FRAMES[name] = g.map(r => r.join(''));
   }
@@ -309,6 +316,30 @@
     [TAIL_UP, 0, 6], [STRETCH_BODY, 1, 12], [HEAD, 16, 9], [FRONT_FLAT, 17, 21],
   ]);
 
+  // Локальные кадры зимних сцен. Реквизит в лапах движется вместе со спрайтом.
+  const SEATED = [[GROOM_BODY, 2, 11], [TAIL_SIT, 12, 21]];
+  const REACH = ['..OOOOOOO', '.OBBBLLLO', 'OBBBBOOO.', '.OOO.....'];
+  const SNOW = ['..III..', '.IWWWI.', 'IWWWWWI', 'IWWWWWI', '.IIWWI.', '..IIII.'];
+  makeFrame('scoop-out', [...SEATED, [HEAD, 6, 3], [REACH, 12, 18], [SNOW, 18, 20]]);
+  makeFrame('scoop-in', [...SEATED, [HEAD, 5, 2], [REACH, 10, 16], [SNOW, 14, 18]]);
+  makeFrame('scoop-lift', [...SEATED, [HEAD, 4, 0], [PAW_UP, 14, 11], [SNOW, 12, 12]]);
+  makeFrame('snow-nose', [...SEATED, [HEAD, 4, 0], [SNOW, 8, 6]]);
+  makeFrame('sneeze', [...SEATED, [HEAD_CLOSED, 7, 3], [REACH, 12, 13]]);
+
+  makeFrame('warm', [...SEATED, [HEAD_CLOSED, 5, 2], [REACH, 13, 12], [REACH, 11, 16]]);
+  makeFrame('look-up', [...SEATED, [HEAD_LOOK, 7, 0]]);
+
+  const THREAD = [
+    '..RRR', '.RR..', 'RR...', 'RR...', '.RR..', '..RR.', '...RR',
+    '....RR', '.....RR', '......RR', '.......RR', '........RR',
+    '.........RR', '..........RR', '...........RR', '............RR',
+  ];
+  makeFrame('loose-end', [...SEATED, [HEAD, 4, 0], [THREAD.slice(0, 7), 0, -2]]);
+  makeFrame('long-end', [...SEATED, [HEAD, 4, 0], [THREAD, 0, -2]]);
+  makeFrame('catch-yarn', [...SEATED, [HEAD, 4, 0], [THREAD, 0, -2], [PAW_UP, 12, 12]]);
+  makeFrame('hat-down', [...SEATED, [HEAD, 4, 0], [THREAD.slice(0, 9), 0, 4], [PAW_UP, 9, 11]], 6);
+  makeFrame('hat-lift', [...SEATED, [HEAD_CLOSED, 4, 0], [PAW_UP, 13, 6]], 3);
+
   /* ═══ Реквизит ═══ */
 
   const FLAKE_A = [
@@ -330,8 +361,12 @@
     '.OOOOOO...',
   ];
 
-  const EM_EXCLAIM = ['YY', 'YY', 'YY', 'YY', 'YY', '..', 'YY'];
-  const EM_QUESTION = ['.YYY.', 'Y...Y', '....Y', '...Y.', '..Y..', '.....', '..Y..'];
+  const COCOA = ['.OOOOOOOOO...', 'OLSSLOLLLLO..', 'ORRRRRRRRROO.',
+    'OCRRWWRRRRO.O', 'OCRWWWWRRRO.O', 'OCRRWWRRRROO.', 'OCCRRRRRRRO..', '.OOOOOOOOO...'];
+  const STEAM = ['...II..', '..IWWI.', '.IWWI..', '.IWI...', '..IWI..', '...IWI.', '..IWI..'];
+  const STEAM_FISH = ['......II......', '...IIWWWI...II', '.IIWWWWWWI.IIW',
+    'IWWOEWWWWWIWWW', '.IWWWWWWWI.IIW', '...IIWWWI...II', '......II......'];
+
   const EM_HEART = ['.RR.RR.', 'RRRRRRR', 'RRRRRRR', '.RRRRR.', '..RRR..', '...R...'];
   const EM_Z = ['YYYY', '..Y.', '.Y..', 'YYYY'];
 
@@ -384,8 +419,8 @@
       cell.appendChild(label);
       sheet.appendChild(cell);
     });
-    [['snowflake A', FLAKE_A], ['snowflake B', FLAKE_B], ['mug', MUG],
-     ['!', EM_EXCLAIM], ['?', EM_QUESTION], ['heart', EM_HEART], ['z', EM_Z]].forEach(([n, art]) => {
+    [['snowflake A', FLAKE_A], ['snowflake B', FLAKE_B], ['mug', MUG], ['cocoa', COCOA], ['fish', STEAM_FISH],
+     ['heart', EM_HEART], ['z', EM_Z]].forEach(([n, art]) => {
       const cell = document.createElement('div');
       cell.style.cssText = 'text-align:center;color:#222;';
       const svg = svgFromGrid(art, 6);
@@ -500,21 +535,6 @@
     stretch:    { frames: ['stretch'] },
   };
 
-  const pawTrail = document.querySelector('.paw-trail');
-
-  function leavePawPrint(step) {
-    const leftward = cat.classList.contains('flip');
-    // Задняя лапа в локальных координатах спрайта, отражённых при развороте.
-    const foot = step % 2 ? 22 : 34;
-    const x = parseFloat(cat.style.left) + (leftward ? W - foot : foot);
-    const print = document.createElementNS(NS, 'use');
-    print.setAttribute('href', '#paw');
-    print.setAttribute('transform', 'translate(' + x + ' ' + (step % 2 ? 14 : 17) +
-      ') scale(' + (leftward ? -1 : 1) + ' 1)');
-    print.addEventListener('animationend', () => print.remove(), { once: true });
-    pawTrail.appendChild(print);
-  }
-
   let frameTimer = null;
   let shownFrame = null;
 
@@ -534,9 +554,6 @@
     (function step() {
       const idx = i % st.frames.length;
       showFrame(st.frames[idx]);
-      if (i > 0 && (name === 'walk' || name === 'run' || name === 'crouch')) {
-        leavePawPrint(i);
-      }
       if (st.frames.length > 1) {
         const d = st.durations ? st.durations[idx] : st.ms;
         i++;
@@ -561,6 +578,21 @@
     setState('stand');
   }
 
+  // Обе плашки измеряем в координатах сцены до масштабирования для OBS.
+  const perches = Array.from(document.querySelector('.employee-card__top').children);
+
+  async function sitOnRoof() {
+    const inset = 18;
+    const seats = perches.map(tile => {
+      const left = tile.offsetLeft + inset;
+      const right = tile.offsetLeft + tile.offsetWidth - inset - W;
+      return Math.max(left, Math.min(px, right));
+    });
+    const nearest = seats.reduce((a, b) => Math.abs(a - px) <= Math.abs(b - px) ? a : b);
+    if (nearest !== px) await move(nearest, ROOF);
+    setState('sit');
+  }
+
   function jumpArc(toX, toFeetY, height, dur) {
     return new Promise(resolve => {
       const fromX = px, fromY = pfeet;
@@ -581,12 +613,10 @@
 
   /* ═══ Эмоции ═══ */
 
-  const EMOTES = { '!': EM_EXCLAIM, '?': EM_QUESTION, heart: EM_HEART };
-
-  async function emote(type, ms) {
+  async function showHeart(ms) {
     emoteEl.innerHTML = '';
     emoteEl.className = 'cat__emote cat__emote--pop';
-    emoteEl.appendChild(svgFromGrid(EMOTES[type], 3));
+    emoteEl.appendChild(svgFromGrid(EM_HEART, 3));
     emoteEl.style.display = '';
     await delay(ms || 1100);
     emoteEl.style.display = 'none';
@@ -711,17 +741,17 @@
   /* ═══ Общие ходы ═══ */
 
   async function snowflakeHunt() {
-    await move(100, ROOF);
+    await move(LEFT, ROOF);
     flakeShow(440, -130);
-    setState('sit');
+    await sitOnRoof();
     await flakeTo(350, -85, 1800);
-    await emote('!', 650);
+    await delay(650);
     await move(195, ROOF, 'crouch');
     const flight = flakeTo(480, -145, 850);
     await jumpArc(282, ROOF, 43, 620);
-    setState('sit');
+    await sitOnRoof();
     await flight;
-    await emote('?', 700);
+    await delay(700);
 
     const nose = seatedNose();
     await flakeTo(nose.x - 13, nose.y - 13, 1400, 5);
@@ -732,13 +762,13 @@
 
   async function laserChase() {
     await move(280, ROOF);
-    laserShow(94, ROOF - 12);
-    setState('sit');
+    laserShow(54, ROOF - 12);
+    await sitOnRoof();
     face('left');
-    await emote('!', 700);
+    await delay(700);
 
     // Лапы и точка встречаются с учётом направления прыжка.
-    for (const spot of [94, 482, 256]) {
+    for (const spot of [54, 482, 256]) {
       laserMove(spot, ROOF - 12);
       const rightward = spot > px + W / 2;
       const landing = spot - (rightward ? W - 28 : 28);
@@ -748,25 +778,101 @@
       await delay(460);
     }
     laserHide();
-    setState('sit');
-    await emote('?', 950);
+    await sitOnRoof();
+    await delay(950);
   }
 
   async function mugHeist() {
     mugShow(CARD_W - 50, ROOF - 24);
     await move(340, ROOF);
-    setState('sit');
+    await sitOnRoof();
     face('right');
-    await emote('!', 750);
+    await delay(750);
     await move(RIGHT, ROOF, 'crouch');
     setState('crouchStill');
     await mugNudge(-9, 8);
     await delay(420);
     await mugNudge(-17, 14);
     await mugFall();
-    setState('sit');
-    await emote('heart', 1200);
+    await sitOnRoof();
+    await showHeart(1200);
     await mugHideSoft();
+  }
+
+  async function pose(frame, ms) {
+    setState('stand');
+    showFrame(frame);
+    await delay(ms);
+  }
+
+  function winterProp(art, scale, x, y) {
+    const prop = svgFromGrid(art, scale);
+    prop.classList.add('winter-prop');
+    prop.setAttribute('aria-hidden', 'true');
+    prop.style.left = x + 'px';
+    prop.style.top = y + 'px';
+    container.appendChild(prop);
+    return prop;
+  }
+
+  async function snowballSneeze() {
+    await move(290, ROOF);
+    face('right');
+    for (let scoop = 0; scoop < 2; scoop++) {
+      await pose('scoop-out', 420);
+      await pose('scoop-in', 360);
+    }
+    await pose('scoop-lift', 350);
+    await pose('snow-nose', 1250);
+    const nose = seatedNose();
+    const spray = [25, 45, 66].map(async (distance, i) => {
+      const bit = winterProp([i === 1 ? 'I' : 'W'], 7, nose.x, nose.y);
+      await tween(bit, { left: nose.x + distance / 2, top: nose.y - 10 - i * 5 }, 145, 'easeOut');
+      await tween(bit, { left: nose.x + distance, top: ROOF - 5 }, 290 + i * 80, 'easeIn');
+      await delay(350);
+      bit.remove();
+    });
+    await pose('sneeze', 430);
+    await sitOnRoof();
+    await Promise.all(spray);
+  }
+
+  async function hotCocoa() {
+    const rim = CARD_W - 82;
+    const mug = winterProp(COCOA, 4, rim, ROOF - 32);
+    await move(rim - 78, ROOF);
+    face('right');
+    const curl = winterProp(STEAM, 3, rim + 8, ROOF - 48);
+    await Promise.all([
+      pose('warm', 1700),
+      tween(curl, { top: ROOF - 76 }, 1700, 'easeOut'),
+    ]);
+    curl.remove();
+    const fish = winterProp(STEAM_FISH, 4, rim - 4, ROOF - 88);
+    await Promise.all([
+      pose('look-up', 1150),
+      tween(fish, { left: rim + 18, top: ROOF - 110 }, 1150, 'easeOut'),
+    ]);
+    const wisp = winterProp(STEAM, 3, rim + 35, ROOF - 110);
+    fish.remove();
+    await tween(wisp, { left: rim + 50, top: ROOF - 128 }, 400, 'easeOut');
+    wisp.remove();
+    await sitOnRoof();
+    await delay(450);
+    mug.remove();
+  }
+
+  async function looseYarn() {
+    await move(350, ROOF);
+    face('right');
+    await pose('loose-end', 650);
+    await pose('long-end', 720);
+    await pose('catch-yarn', 560);
+    await pose('hat-down', 1000);
+    await pose('hat-lift', 340);
+    setState('groom');
+    await delay(850);
+    await sitOnRoof();
   }
 
   async function catNap() {
@@ -786,9 +892,9 @@
 
   /* ═══ Цикл жизни ═══ */
 
-  const scenarios = [snowflakeHunt, laserChase, mugHeist, catNap];
-  const names = ['butterfly', 'laser', 'mug', 'nap'];
-  // ?scenario=butterfly|laser|mug|nap — прогонять один сценарий (для отладки)
+  const scenarios = [snowflakeHunt, laserChase, mugHeist, catNap, snowballSneeze, hotCocoa, looseYarn];
+  const names = ['butterfly', 'laser', 'mug', 'nap', 'snowball', 'cocoa', 'yarn'];
+  // ?scenario=<имя> повторяет выбранную сцену.
   const forced = names.indexOf(new URLSearchParams(location.search).get('scenario'));
   let lastIdx = -1;
 
@@ -802,7 +908,7 @@
     lastIdx = idx;
     window.__catScenario = names[idx];
     await scenarios[idx]();
-    setState('sit');
+    await sitOnRoof();
     face(px > CARD_W / 2 ? 'left' : 'right');
     await delay(forced >= 0 ? 2000 : 14000 + Math.random() * 8000);
     cycle();

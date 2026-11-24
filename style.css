@@ -53,16 +53,6 @@ body {
     pointer-events: none;
 }
 
-.paw-trail use {
-    fill: #627e91;
-    animation: snow-fill-in 2.4s linear forwards;
-}
-
-@keyframes snow-fill-in {
-    0%, 28% { opacity: .78; }
-    100% { opacity: 0; }
-}
-
 .employee-card {
     width: var(--card-width);
     display: flex;
@@ -289,3 +279,10 @@ body {
     transform-origin: 50% 90%;
 }
 
+
+.winter-prop {
+    position: absolute;
+    z-index: 11;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 2px #34465599);
+}
